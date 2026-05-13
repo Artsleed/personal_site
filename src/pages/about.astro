@@ -1,0 +1,45 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="About">
+  <div class="about">
+    <h1>About</h1>
+
+    <section>
+      <h2>Background</h2>
+      <p>Hello! My name is Nathaniel, and i am a Computer Engineering student at Queen's University. I am originally from Brantford, Ontario where my love of videogames led me to explore of the interactions between hardware and software. Being able to take any problem, break it down and then solve it was the best feeling in the world. Next thing you know i found myself as an Engineer.</p>
+    </section>
+
+    <section>
+      <h2>Engineering</h2>
+      <p>I am most passionate about projects which solves real issues and every now and then i like to throw in a really cool project just for fun. Im most interested in ML, CV, Quantum compute, and embedded systems.</p>
+    </section>
+
+    <section>
+      <h2>Outside Engineering</h2>
+      <p>Outside of Engineering i love riding my bike, rock climbing, watching movies, reading, and playing videogames.</p>
+    </section>
+  </div>
+</Layout>
+
+<style>
+  .about {
+    max-width: 650px;
+  }
+
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+    margin: 2rem 0 0.5rem 0;
+  }
+
+  p {
+    line-height: 1.7;
+    color: #444;
+  }
+</style>

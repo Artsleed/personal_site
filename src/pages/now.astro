@@ -1,0 +1,115 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Now">
+  <div class="now">
+    <h1>Now</h1>
+    <p class="updated">Last updated: May 2026</p>
+
+    <section>
+      <h2>What I'm Working On</h2>
+      <ul>
+        <li>finishing this website</li>
+        <li>Another thing you're working on, is also trying to find a way to spend the summer</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Recently Watched</h2>
+      <div id="letterboxd" class="films">
+        <p class="loading">Loading...</p>
+      </div>
+    </section>
+  </div>
+</Layout>
+
+<script>
+  async function fetchLetterboxd() {
+    const container = document.getElementById('letterboxd');
+    try {
+      const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://letterboxd.com/Artsleed/rss/');
+      const data = await res.json();
+      const films = data.items.slice(0, 5);
+
+      container.innerHTML = films.map(film => {
+        const title = film.title;
+        const link = film.link;
+
+        // Extract image from description HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(film.description, 'text/html');
+        const img = doc.querySelector('img');
+        const thumb = img ? img.src : null;
+
+        return `
+          <a href="${link}" target="_blank" class="film">
+            ${thumb ? `<img src="${thumb}" alt="${title}" />` : ''}
+            <span>${title}</span>
+          </a>
+        `;
+      }).join('');
+    } catch {
+      container.innerHTML = '<p>Could not load films.</p>';
+    }
+  }
+
+  fetchLetterboxd();
+</script>
+
+<style>
+  .now {
+    max-width: 650px;
+  }
+
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .updated {
+    color: #888;
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+    margin: 2rem 0 0.75rem 0;
+  }
+
+  ul {
+    line-height: 1.8;
+    color: #444;
+  }
+
+  .films {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .film {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    text-decoration: none;
+    color: #444;
+    font-size: 0.85rem;
+    width: 80px;
+    text-align: center;
+  }
+
+  .film img {
+    width: 80px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+  }
+
+  .film:hover span {
+    text-decoration: underline;
+  }
+</style>
