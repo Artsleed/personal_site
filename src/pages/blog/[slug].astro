@@ -1,0 +1,46 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map(post => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+
+<Layout title={post.data.title}>
+  <article class="post">
+    <span class="date">{post.data.date.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+    <h1>{post.data.title}</h1>
+    <div class="content">
+      <Content />
+    </div>
+  </article>
+</Layout>
+
+<style>
+  .post {
+    max-width: 650px;
+  }
+
+  .date {
+    font-size: 0.85rem;
+    color: #888;
+  }
+
+  h1 {
+    font-size: 2rem;
+    margin: 0.25rem 0 2rem 0;
+  }
+
+  .content {
+    line-height: 1.8;
+    color: #222;
+  }
+</style>

@@ -1,8 +1,65 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+);
+
 ---
 
 <Layout title="Blog">
-  <h1>Blog</h1>
-  <p>Posts coming soon.</p>
-</Layout>   
+  <div class="blog">
+    <h1>Blog</h1>
+    {posts.map(post => (
+      <a href={`/blog/${post.id}`} class="post">
+        <span class="date">{post.data.date.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+        <h2>{post.data.title}</h2>
+        <p>{post.data.description}</p>
+      </a>
+    ))}
+  </div>
+</Layout>
+
+<style>
+  .blog {
+    max-width: 650px;
+  }
+
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .post {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .post:first-of-type {
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .post:hover h2 {
+    text-decoration: underline;
+  }
+
+  .date {
+    font-size: 0.85rem;
+    color: #888;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+    margin: 0.25rem 0 0.5rem 0;
+  }
+
+  p {
+    margin: 0;
+    color: #444;
+    font-size: 0.95rem;
+  }
+</style>
