@@ -8,38 +8,38 @@ import Layout from '../layouts/Layout.astro';
 
     <section>
       <h2>Background</h2>
-      <p>Hello! My name is Nathaniel, and i am a Computer Engineering student at Queen's University. I am originally from Brantford, Ontario where my love of videogames led me to explore of the interactions between hardware and software. Being able to take any problem, break it down and then solve it was the best feeling in the world. Next thing you know i found myself as an Engineer.</p>
+      <p>Hello! My name is Nathaniel, and I'm a Computer Engineering student at Queen's University. I'm originally from Brantford, Ontario where my love of videogames and technology led me to explore the interactions between hardware and software. Being able to take any problem, break it down and then solve it is one of my favorite feelings in the world. Next thing you know I found myself studying engineering.</p>
     </section>
 
     <section>
       <h2>Engineering</h2>
-      <p>I am most passionate about projects which solves real issues and every now and then i like to throw in a really cool project just for fun. Im most interested in ML, CV, Quantum compute, and embedded systems.</p>
+      <p>I'm most passionate about projects that solve real issues and every now and then I like to throw in a random project just for fun. Im most interested in ML, CV, Quantum compute, and embedded systems.</p>
     </section>
 
     <section>
       <h2>Outside Engineering</h2>
-      <p>Outside of Engineering i love riding my bike, rock climbing, watching movies, reading, and playing videogames.</p>
+      <p>Outside of Engineering I love riding my bike, rock climbing, watching movies, reading, playing videogames, and hanging out with my cats.</p>
     </section>
   </div>
 </Layout>
 
 <style>
   .about {
-    max-width: 650px;
+    max-width: var(--content-width);
   }
 
   h1 {
     font-size: 2rem;
-    margin-bottom: 2rem;
+    margin-bottom: var(--space-4);
   }
 
   h2 {
     font-size: 1.2rem;
-    margin: 2rem 0 0.5rem 0;
+    margin: var(--space-4) 0 var(--space-1) 0;
   }
 
   p {
     line-height: 1.7;
-    color: #444;
+    color: var(--color-text-muted);
   }
 </style>

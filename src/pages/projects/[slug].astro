@@ -26,21 +26,21 @@ const { Content } = await render(project);
 
 <style>
   .project {
-    max-width: 650px;
+    max-width: var(--content-width);
   }
 
   h1 {
     font-size: 2rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-1);
   }
 
   .description {
-    color: #888;
-    margin-bottom: 2rem;
+    color: var(--color-text-faint);
+    margin-bottom: var(--space-4);
   }
 
   .content {
     line-height: 1.8;
-    color: #222;
+    color: var(--color-text);
   }
 </style>

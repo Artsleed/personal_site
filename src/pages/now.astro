@@ -8,6 +8,13 @@ import Layout from '../layouts/Layout.astro';
     <p class="updated">Last updated: May 2026</p>
 
     <section>
+      <h2>Now Playing</h2>
+      <div id="now-playing" class="now-playing">
+        <p class="loading">Loading...</p>
+      </div>
+    </section>
+
+    <section>
       <h2>What I'm Working On</h2>
       <ul>
         <li>finishing this website</li>
@@ -25,6 +32,62 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <script>
+  async function fetchNowPlaying() {
+    const container = document.getElementById('now-playing');
+    if (!container) return;
+
+    try {
+      const res = await fetch('/api/now-playing');
+      const data = await res.json();
+
+      if (!res.ok || data.error || !data.title) {
+        container.innerHTML = '<p class="loading">Nothing played recently.</p>';
+        return;
+      }
+
+      container.replaceChildren();
+
+      const link = document.createElement('a');
+      link.href = data.songUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.className = 'track';
+
+      if (data.albumArt) {
+        const img = document.createElement('img');
+        img.src = data.albumArt;
+        img.alt = data.album ?? '';
+        link.appendChild(img);
+      }
+
+      const info = document.createElement('div');
+      info.className = 'info';
+
+      const status = document.createElement('span');
+      status.className = 'status';
+      status.textContent = data.isPlaying ? '♪ Now Playing' : 'Last played';
+      info.appendChild(status);
+
+      const title = document.createElement('span');
+      title.className = 'title';
+      title.textContent = data.title;
+      info.appendChild(title);
+
+      const artist = document.createElement('span');
+      artist.className = 'artist';
+      artist.textContent = data.artist;
+      info.appendChild(artist);
+
+      link.appendChild(info);
+      container.appendChild(link);
+    } catch {
+      container.innerHTML = '<p class="loading">Could not load Spotify status.</p>';
+    }
+  }
+
+  fetchNowPlaying();
+  setInterval(fetchNowPlaying, 30000);
+
   async function fetchLetterboxd() {
     const container = document.getElementById('letterboxd');
     try {
@@ -43,8 +106,8 @@ import Layout from '../layouts/Layout.astro';
         const thumb = img ? img.src : null;
 
         return `
-        <a href="${link}" target="_blank" style="display:flex;flex-direction:column;align-items:center;gap:0.4rem;text-decoration:none;color:#444;font-size:0.85rem;width:100px;text-align:center;">
-        ${thumb ? `<img src="${thumb}" alt="${title}" style="width:100px;height:150px;object-fit:cover;border-radius:4px;border:1px solid #e0e0e0;" />` : ''}
+        <a href="${link}" target="_blank" class="film">
+        ${thumb ? `<img src="${thumb}" alt="${title}" />` : ''}
         <span>${title}</span>
         </a>
         `;
@@ -59,7 +122,7 @@ import Layout from '../layouts/Layout.astro';
 
 <style>
   .now {
-    max-width: 650px;
+    max-width: var(--content-width);
   }
 
   h1 {
@@ -68,26 +131,83 @@ import Layout from '../layouts/Layout.astro';
   }
 
   .updated {
-    color: #888;
+    color: var(--color-text-faint);
     font-size: 0.85rem;
-    margin-bottom: 2rem;
+    margin-bottom: var(--space-4);
   }
 
   h2 {
     font-size: 1.2rem;
-    margin: 2rem 0 0.75rem 0;
+    margin: var(--space-4) 0 0.75rem 0;
   }
 
   ul {
     line-height: 1.8;
-    color: #444;
+    color: var(--color-text-muted);
+  }
+
+  .loading {
+    color: var(--color-text-faint);
+  }
+
+  .now-playing .track {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    text-decoration: none;
+    padding: var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    max-width: 400px;
+  }
+
+  .now-playing .track:hover {
+    border-color: var(--color-accent);
+  }
+
+  .now-playing img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .now-playing .info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .now-playing .status {
+    font-size: 0.75rem;
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  .now-playing .title {
+    font-size: 0.95rem;
+    color: var(--color-text);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .now-playing .artist {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .films {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: var(--space-2);
     align-items: flex-start;
   }
 
@@ -97,17 +217,17 @@ import Layout from '../layouts/Layout.astro';
     align-items: center;
     gap: 0.4rem;
     text-decoration: none;
-    color: #444;
+    color: var(--color-text-muted);
     font-size: 0.85rem;
     width: 100px;
     text-align: center;
   }
 
   .film img {
-    width: 100px !important;
-    height: 150px !important;
+    width: 100px;
+    height: 150px;
     object-fit: cover;
-    border-radius: 4px;
-    border: 1px solid #e0e0e0;
+    border-radius: var(--radius);
+    border: 1px solid var(--color-border);
   }
 </style>

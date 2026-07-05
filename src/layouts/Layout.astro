@@ -1,4 +1,6 @@
 ---
+import '../styles/global.css';
+
 interface Props {
   title: string;
 }
@@ -44,32 +46,23 @@ const { title } = Astro.props;
 </html>
 
 <style>
-  *, *::before, *::after {
-    box-sizing: border-box;
-  }
-
-  html, body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    font-family: system-ui, sans-serif;
-  }
-
   body {
     display: flex;
     flex-direction: column;
   }
 
   header {
-    padding: 1rem 2rem;
-    border-bottom: 1px solid #e0e0e0;
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--color-border);
   }
 
   nav {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    max-width: 900px;
+    gap: var(--space-1) var(--space-3);
+    max-width: var(--page-width);
     margin: 0 auto;
   }
 
@@ -77,52 +70,64 @@ const { title } = Astro.props;
     font-weight: 700;
     font-size: 1.1rem;
     text-decoration: none;
-    color: inherit;
+    color: var(--color-text);
   }
 
   nav .links {
     display: flex;
-    gap: 1.5rem;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
   }
 
   nav .links a {
     text-decoration: none;
-    color: inherit;
+    color: var(--color-text-muted);
     font-size: 0.95rem;
   }
 
   nav .links a:hover {
-    text-decoration: underline;
+    color: var(--color-accent);
   }
 
   main {
     flex: 1;
-    max-width: 900px;
+    max-width: var(--page-width);
     width: 100%;
     margin: 0 auto;
-    padding: 2rem;
+    padding: var(--space-4);
   }
 
   footer {
-    border-top: 1px solid #e0e0e0;
-    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--color-border);
+    padding: var(--space-3) var(--space-4);
     text-align: center;
   }
 
   footer p {
     display: flex;
     justify-content: center;
-    gap: 1.5rem;
+    flex-wrap: wrap;
+    gap: var(--space-3);
     margin: 0;
   }
 
   footer a {
     text-decoration: none;
-    color: inherit;
+    color: var(--color-text-muted);
     font-size: 0.9rem;
   }
 
   footer a:hover {
-    text-decoration: underline;
+    color: var(--color-accent);
+  }
+
+  @media (max-width: 480px) {
+    header {
+      padding: var(--space-2);
+    }
+
+    main {
+      padding: var(--space-3);
+    }
   }
 </style>

@@ -21,28 +21,28 @@ const projects = (await getCollection('projects')).sort(
 
 <style>
   .projects {
-    max-width: 650px;
+    max-width: var(--content-width);
   }
 
   h1 {
     font-size: 2rem;
-    margin-bottom: 2rem;
+    margin-bottom: var(--space-4);
   }
 
   .project {
     display: block;
     text-decoration: none;
-    color: inherit;
-    padding: 1.5rem 0;
-    border-bottom: 1px solid #e0e0e0;
+    color: var(--color-text);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--color-border);
   }
 
   .project:first-of-type {
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid var(--color-border);
   }
 
   .project:hover h2 {
-    text-decoration: underline;
+    color: var(--color-accent);
   }
 
   h2 {
@@ -52,7 +52,7 @@ const projects = (await getCollection('projects')).sort(
 
   p {
     margin: 0;
-    color: #444;
+    color: var(--color-text-muted);
     font-size: 0.95rem;
   }
 </style>
