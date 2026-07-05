@@ -43,7 +43,8 @@ async function getAccessToken(env: {
   });
 
   if (!res.ok) {
-    throw new Error('Failed to refresh Spotify access token');
+    const body = await res.text();
+    throw new Error(`Failed to refresh Spotify access token (${res.status}): ${body}`);
   }
 
   const data = await res.json();
