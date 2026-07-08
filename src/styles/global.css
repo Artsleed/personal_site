@@ -23,21 +23,6 @@
   --page-width: 900px;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --color-bg: #ffffff;
-    --color-surface: #f5f4f2;
-    --color-text: #1a1a1a;
-    --color-text-muted: #55524d;
-    --color-text-faint: #8a8680;
-    --color-border: #e4e1dc;
-    --color-accent: #ea580c;
-    --color-accent-contrast: #ffffff;
-    --color-secondary: #1c6ea4;
-    --color-secondary-contrast: #ffffff;
-  }
-}
-
 *,
 *::before,
 *::after {

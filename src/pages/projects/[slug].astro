@@ -16,6 +16,7 @@ const { Content } = await render(project);
 
 <Layout title={project.data.title}>
   <article class="project">
+    <a href="/projects" class="back">&larr; Projects</a>
     <h1>{project.data.title}</h1>
     <p class="description">{project.data.description}</p>
     <div class="content">
@@ -27,6 +28,18 @@ const { Content } = await render(project);
 <style>
   .project {
     max-width: var(--content-width);
+  }
+
+  .back {
+    display: inline-block;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    margin-bottom: var(--space-3);
+  }
+
+  .back:hover {
+    color: var(--color-accent);
   }
 
   h1 {

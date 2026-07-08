@@ -6,6 +6,17 @@ interface Props {
 }
 
 const { title } = Astro.props;
+
+const navLinks = [
+  { href: '/about', label: 'About' },
+  { href: '/now', label: 'Now' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/projects', label: 'Projects' },
+  { href: '/resume', label: 'Resume' },
+];
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
 ---
 
 <!doctype html>
@@ -20,13 +31,11 @@ const { title } = Astro.props;
   <body>
     <header>
       <nav>
-        <a href="/" class="name">Nathaniel Felsky-Deelstra</a>
+        <a href="/" class="name"><span class="dot"></span>Nathaniel Felsky-Deelstra</a>
         <div class="links">
-          <a href="/about">About</a>
-          <a href="/now">Now</a>
-          <a href="/blog">Blog</a>
-          <a href="/projects">Projects</a>
-          <a href="/resume">Resume</a>
+          {navLinks.map((link) => (
+            <a href={link.href} class:list={{ active: isActive(link.href) }}>{link.label}</a>
+          ))}
         </div>
       </nav>
     </header>
@@ -37,9 +46,15 @@ const { title } = Astro.props;
 
     <footer>
       <p>
-        <a href="mailto:nathanielfd5@gmail.com">Email</a>
-        <a href="https://www.linkedin.com/in/nathaniel-felsky-deelstra/">LinkedIn</a>
-        <a href="https://github.com/Artsleed">GitHub</a>
+        <a href="mailto:nathanielfd5@gmail.com" class="icon-link" aria-label="Email">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18v12H3z"/><path d="m3 7 9 6 9-6"/></svg>
+        </a>
+        <a href="https://www.linkedin.com/in/nathaniel-felsky-deelstra/" class="icon-link" aria-label="LinkedIn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.94 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM3.3 8.75h3.4V21H3.3zM9.5 8.75h3.26v1.68h.05c.45-.86 1.56-1.76 3.22-1.76 3.44 0 4.08 2.27 4.08 5.22V21h-3.4v-6.4c0-1.53-.03-3.49-2.13-3.49-2.13 0-2.46 1.66-2.46 3.38V21H9.5z"/></svg>
+        </a>
+        <a href="https://github.com/Artsleed" class="icon-link" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.15-1.11-1.46-1.11-1.46-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.56-1.11-4.56-4.93 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.3 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.83-2.34 4.68-4.57 4.92.36.31.68.92.68 1.85v2.75c0 .26.18.58.69.48A10 10 0 0 0 12 2z"/></svg>
+        </a>
       </p>
     </footer>
   </body>
@@ -67,10 +82,21 @@ const { title } = Astro.props;
   }
 
   nav .name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     font-weight: 700;
     font-size: 1.1rem;
     text-decoration: none;
     color: var(--color-text);
+  }
+
+  nav .name .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    flex-shrink: 0;
   }
 
   nav .links {
@@ -80,13 +106,30 @@ const { title } = Astro.props;
   }
 
   nav .links a {
+    position: relative;
     text-decoration: none;
     color: var(--color-text-muted);
     font-size: 0.95rem;
+    padding-bottom: 2px;
   }
 
   nav .links a:hover {
+    color: var(--color-text);
+  }
+
+  nav .links a.active {
     color: var(--color-accent);
+  }
+
+  nav .links a.active::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 2px;
+    background: var(--color-accent);
+    border-radius: 2px;
   }
 
   main {
@@ -107,18 +150,31 @@ const { title } = Astro.props;
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: var(--space-3);
+    gap: var(--space-2);
     margin: 0;
   }
 
-  footer a {
-    text-decoration: none;
+  .icon-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     color: var(--color-text-muted);
-    font-size: 0.9rem;
+    transition: color 0.15s ease, border-color 0.15s ease;
   }
 
-  footer a:hover {
+  .icon-link svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .icon-link:hover {
     color: var(--color-accent);
+    border-color: var(--color-accent);
   }
 
   @media (max-width: 480px) {

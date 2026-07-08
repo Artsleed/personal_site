@@ -4,6 +4,7 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout title="Now">
   <div class="now">
+    <p class="kicker">Today</p>
     <h1>Now</h1>
     <p class="updated">Last updated: May 2026</p>
 
@@ -125,6 +126,15 @@ import Layout from '../layouts/Layout.astro';
     max-width: var(--content-width);
   }
 
+  .kicker {
+    color: var(--color-accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 var(--space-1) 0;
+  }
+
   h1 {
     font-size: 2rem;
     margin-bottom: 0.25rem;
@@ -139,6 +149,8 @@ import Layout from '../layouts/Layout.astro';
   h2 {
     font-size: 1.2rem;
     margin: var(--space-4) 0 0.75rem 0;
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--color-accent);
   }
 
   ul {
@@ -146,10 +158,19 @@ import Layout from '../layouts/Layout.astro';
     color: var(--color-text-muted);
   }
 
+  ul li::marker {
+    color: var(--color-accent);
+  }
+
   .loading {
     color: var(--color-text-faint);
   }
+</style>
 
+<style is:global>
+  /* These target elements injected client-side (innerHTML/createElement) for the
+     now-playing and letterboxd widgets, which never receive Astro's scoped
+     data-astro-cid attribute, so these rules must stay unscoped. */
   .now-playing .track {
     display: flex;
     align-items: center;
@@ -223,11 +244,20 @@ import Layout from '../layouts/Layout.astro';
     text-align: center;
   }
 
+  .film:hover {
+    color: var(--color-accent);
+  }
+
   .film img {
     width: 100px;
     height: 150px;
     object-fit: cover;
     border-radius: var(--radius);
     border: 1px solid var(--color-border);
+    transition: border-color 0.15s ease;
+  }
+
+  .film:hover img {
+    border-color: var(--color-accent);
   }
 </style>

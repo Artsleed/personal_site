@@ -4,9 +4,10 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout title="Resume">
   <div class="resume">
+    <p class="kicker">CV</p>
     <div class="header">
       <h1>Resume</h1>
-      <a href="/Nathaniel_Felsky_Deelstra_resume.pdf" download>Download PDF</a>
+      <a href="/Nathaniel_Felsky_Deelstra_resume.pdf" download class="btn-download">Download PDF</a>
     </div>
     <iframe
       src="/Nathaniel_Felsky_Deelstra_resume.pdf"
@@ -17,6 +18,15 @@ import Layout from '../layouts/Layout.astro';
 </Layout>
 
 <style>
+  .kicker {
+    color: var(--color-accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 var(--space-1) 0;
+  }
+
   .header {
     display: flex;
     flex-wrap: wrap;
@@ -31,18 +41,19 @@ import Layout from '../layouts/Layout.astro';
     margin: 0;
   }
 
-  a {
-    padding: 0.5rem 1.2rem;
-    border: 1px solid var(--color-text);
+  .btn-download {
+    padding: 0.6rem 1.3rem;
     text-decoration: none;
-    color: var(--color-text);
+    color: var(--color-accent-contrast);
+    background: var(--color-accent);
     font-size: 0.95rem;
+    font-weight: 600;
     border-radius: var(--radius);
+    transition: opacity 0.15s ease;
   }
 
-  a:hover {
-    background: var(--color-text);
-    color: var(--color-bg);
+  .btn-download:hover {
+    opacity: 0.88;
   }
 
   iframe {

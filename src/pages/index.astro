@@ -4,9 +4,21 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout title="Home">
   <div class="hero">
+    <p class="kicker">Computer Engineering @ Queen's University</p>
     <h1>Nathaniel Felsky-Deelstra</h1>
-    <p class="tagline">Computer Engineering student at Queen's University, building projects that fuse software and hardware to solve real problems. When I'm not working on a project I'm usually on a climbing wall, on a bike, or playing with my cats.</p>
-    
+    <p class="tagline">Building projects that fuse <span class="highlight">software</span> and <span class="highlight">hardware</span> to solve real problems. When I'm not working on a project I'm usually on a climbing wall, on a bike, or playing with my cats.</p>
+
+    <div class="cta-row">
+      <a href="/projects" class="btn btn-primary">View Projects</a>
+      <a href="/about" class="btn btn-outline">About Me</a>
+    </div>
+
+    <div class="tag-row">
+      <span class="tag">ML</span>
+      <span class="tag">Computer Vision</span>
+      <span class="tag">Quantum Computing</span>
+      <span class="tag">Embedded Systems</span>
+    </div>
   </div>
 </Layout>
 
@@ -15,8 +27,17 @@ import Layout from '../layouts/Layout.astro';
     padding: var(--space-5) 0;
   }
 
+  .kicker {
+    color: var(--color-accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 var(--space-2) 0;
+  }
+
   h1 {
-    font-size: 2.5rem;
+    font-size: 2.75rem;
     margin: 0 0 var(--space-2) 0;
   }
 
@@ -26,5 +47,62 @@ import Layout from '../layouts/Layout.astro';
     max-width: var(--content-width);
     color: var(--color-text-muted);
     margin: 0 0 var(--space-4) 0;
+  }
+
+  .highlight {
+    color: var(--color-text);
+    font-weight: 600;
+  }
+
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 0.65rem 1.4rem;
+    border-radius: var(--radius);
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: opacity 0.15s ease, border-color 0.15s ease;
+  }
+
+  .btn-primary {
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+  }
+
+  .btn-primary:hover {
+    opacity: 0.88;
+  }
+
+  .btn-outline {
+    color: var(--color-text);
+    border-color: var(--color-border);
+  }
+
+  .btn-outline:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .tag {
+    font-size: 0.8rem;
+    color: var(--color-secondary);
+    background: color-mix(in srgb, var(--color-secondary) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-secondary) 35%, transparent);
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
   }
 </style>

@@ -10,14 +10,17 @@ const posts = (await getCollection('blog')).sort(
 
 <Layout title="Blog">
   <div class="blog">
+    <p class="kicker">Writing</p>
     <h1>Blog</h1>
-    {posts.map(post => (
-      <a href={`/blog/${post.id}`} class="post">
-        <span class="date">{post.data.date.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-        <h2>{post.data.title}</h2>
-        <p>{post.data.description}</p>
-      </a>
-    ))}
+    <div class="post-list">
+      {posts.map(post => (
+        <a href={`/blog/${post.id}`} class="post">
+          <span class="date">{post.data.date.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          <h2>{post.data.title}</h2>
+          <p>{post.data.description}</p>
+        </a>
+      ))}
+    </div>
   </div>
 </Layout>
 
@@ -26,21 +29,39 @@ const posts = (await getCollection('blog')).sort(
     max-width: var(--content-width);
   }
 
+  .kicker {
+    color: var(--color-accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 var(--space-1) 0;
+  }
+
   h1 {
     font-size: 2rem;
-    margin-bottom: var(--space-4);
+    margin: 0 0 var(--space-4) 0;
+  }
+
+  .post-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
   }
 
   .post {
     display: block;
     text-decoration: none;
     color: var(--color-text);
-    padding: var(--space-3) 0;
-    border-bottom: 1px solid var(--color-border);
+    padding: var(--space-3);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    transition: border-color 0.15s ease;
   }
 
-  .post:first-of-type {
-    border-top: 1px solid var(--color-border);
+  .post:hover {
+    border-color: var(--color-accent);
   }
 
   .post:hover h2 {
@@ -48,13 +69,20 @@ const posts = (await getCollection('blog')).sort(
   }
 
   .date {
-    font-size: 0.85rem;
-    color: var(--color-text-faint);
+    display: inline-block;
+    font-size: 0.75rem;
+    color: var(--color-secondary);
+    background: color-mix(in srgb, var(--color-secondary) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-secondary) 35%, transparent);
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    margin-bottom: 0.6rem;
   }
 
   h2 {
     font-size: 1.2rem;
-    margin: 0.25rem 0 0.5rem 0;
+    margin: 0 0 0.5rem 0;
+    transition: color 0.15s ease;
   }
 
   p {
