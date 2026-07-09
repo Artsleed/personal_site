@@ -8,6 +8,8 @@ interface Props {
 
 const { title } = Astro.props;
 
+const name = 'Nathaniel Felsky-Deelstra';
+
 const navLinks = [
   { href: '/about', label: 'about' },
   { href: '/now', label: 'now' },
@@ -33,7 +35,7 @@ const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
   <body>
     <header>
       <nav>
-        <a href="/" class="name"><span class="prompt">Nathaniel Felsky-Deelstra</span><span class="cursor"></span></a>
+        <a href="/" class="name"><span class="prompt" style={`--steps: ${name.length}`}>{name}</span><span class="cursor"></span></a>
         <div class="links">
           {navLinks.map((link) => (
             <a href={link.href} class:list={{ active: isActive(link.href) }}>{link.label}</a>
@@ -92,8 +94,6 @@ const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
     justify-content: space-between;
     align-items: center;
     gap: var(--space-1) var(--space-3);
-    max-width: var(--page-width);
-    margin: 0 auto;
   }
 
   nav .name {
@@ -106,7 +106,11 @@ const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
   }
 
   nav .name .prompt {
+    display: inline-block;
+    overflow: hidden;
     white-space: nowrap;
+    width: 0;
+    animation: nav-typing 0.9s steps(var(--steps)) 0.15s forwards;
   }
 
   nav .name .cursor {
@@ -214,6 +218,11 @@ const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
     transform: translateY(-2px);
   }
 
+  @keyframes nav-typing {
+    from { width: 0; }
+    to { width: min(var(--steps) * 1ch, 100%); }
+  }
+
   @keyframes blink {
     0%, 49% { opacity: 1; }
     50%, 100% { opacity: 0; }
@@ -225,6 +234,11 @@ const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
   }
 
   @media (prefers-reduced-motion: reduce) {
+    nav .name .prompt {
+      width: 100%;
+      animation: none;
+    }
+
     nav .name .cursor,
     .status-dot {
       animation: none;

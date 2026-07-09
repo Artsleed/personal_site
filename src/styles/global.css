@@ -19,9 +19,6 @@
   /* terminal chrome */
   --color-chrome: #1c1916;
   --color-chrome-border: #322c25;
-  --color-dot-1: var(--color-accent);
-  --color-dot-2: var(--color-secondary);
-  --color-dot-3: var(--color-text-faint);
   --color-scanline: rgba(242, 241, 239, 0.025);
   --color-grid: rgba(242, 241, 239, 0.035);
 
@@ -35,7 +32,7 @@
 
   --radius: 6px;
   --content-width: 650px;
-  --page-width: 900px;
+  --page-width: 1120px;
 
   /* motion */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);

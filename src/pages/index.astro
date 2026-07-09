@@ -2,7 +2,6 @@
 import Layout from '../layouts/Layout.astro';
 import TerminalWindow from '../components/TerminalWindow.astro';
 
-const name = 'Nathaniel Felsky-Deelstra';
 const skills = ['ML', 'Computer Vision', 'Quantum Computing', 'Embedded Systems'];
 ---
 
@@ -10,17 +9,17 @@ const skills = ['ML', 'Computer Vision', 'Quantum Computing', 'Embedded Systems'
   <div class="hero">
     <TerminalWindow filename="whoami.sh">
       <p class="comment"># Computer Engineering @ Queen's University</p>
-      <h1 class="typewriter" style={`--steps: ${name.length}`}>{name}</h1>
-      <p class="tagline" data-reveal style="transition-delay: 0.5s">
+      <h1 data-reveal>Nathaniel Felsky-Deelstra</h1>
+      <p class="tagline" data-reveal style="transition-delay: 0.1s">
         Building projects that fuse <span class="highlight">software</span> and <span class="highlight">hardware</span> to solve real problems. When I'm not working on a project I'm usually on a climbing wall, on a bike, or playing with my cats.
       </p>
 
-      <div class="cta-row" data-reveal style="transition-delay: 0.65s">
+      <div class="cta-row" data-reveal style="transition-delay: 0.2s">
         <a href="/projects" class="btn btn-primary">View Projects</a>
         <a href="/about" class="btn btn-outline">About Me</a>
       </div>
 
-      <div class="skills-output" data-reveal style="transition-delay: 0.8s">
+      <div class="skills-output" data-reveal style="transition-delay: 0.3s">
         <span class="prompt-line">$ echo $SKILLS</span>
         <div class="tag-row">
           {skills.map((skill) => (
@@ -43,17 +42,9 @@ const skills = ['ML', 'Computer Vision', 'Quantum Computing', 'Embedded Systems'
     margin: 0 0 var(--space-2) 0;
   }
 
-  h1.typewriter {
-    font-size: clamp(0.8rem, 4.3vw, 2.5rem);
+  h1 {
+    font-size: clamp(1.5rem, 4.3vw, 2.5rem);
     margin: 0 0 var(--space-2) 0;
-    max-width: 100%;
-    overflow: hidden;
-    white-space: nowrap;
-    width: 0;
-    border-right: 3px solid var(--color-accent);
-    animation:
-      typing 1.1s steps(var(--steps)) 0.2s forwards,
-      caret 0.8s step-end infinite;
   }
 
   .tagline {
@@ -135,20 +126,4 @@ const skills = ['ML', 'Computer Vision', 'Quantum Computing', 'Embedded Systems'
     border-radius: var(--radius);
   }
 
-  @keyframes typing {
-    from { width: 0; }
-    to { width: min(var(--steps) * 1ch, 100%); }
-  }
-
-  @keyframes caret {
-    50% { border-color: transparent; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    h1.typewriter {
-      width: 100%;
-      animation: none;
-      border-right: none;
-    }
-  }
 </style>

@@ -15,11 +15,6 @@ const projects = (await getCollection('projects')).sort(
       {projects.map((project, i) => (
         <a href={`/projects/${project.id}`} class="project" data-reveal style={`transition-delay: ${i * 0.08}s`}>
           <div class="titlebar">
-            <span class="dots">
-              <span class="dot dot-1"></span>
-              <span class="dot dot-2"></span>
-              <span class="dot dot-3"></span>
-            </span>
             <span class="filename">{project.id}.md</span>
             <span class="hud-date">{project.data.date.getFullYear()}</span>
           </div>
@@ -35,13 +30,14 @@ const projects = (await getCollection('projects')).sort(
 
 <style>
   .projects {
-    max-width: var(--content-width);
+    max-width: var(--page-width);
   }
 
   .project-list {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: var(--space-3);
+    align-items: start;
   }
 
   .project {
@@ -73,22 +69,6 @@ const projects = (await getCollection('projects')).sort(
     background: var(--color-chrome);
     border-bottom: 1px solid var(--color-chrome-border);
   }
-
-  .dots {
-    display: flex;
-    gap: 0.4rem;
-    flex-shrink: 0;
-  }
-
-  .dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-  }
-
-  .dot-1 { background: var(--color-dot-1); }
-  .dot-2 { background: var(--color-dot-2); }
-  .dot-3 { background: var(--color-dot-3); }
 
   .filename {
     font-size: 0.78rem;
