@@ -1,5 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import TerminalWindow from '../components/TerminalWindow.astro';
+
+const title = 'About';
 
 const sections = [
   {
@@ -15,28 +18,97 @@ const sections = [
     body: 'Outside of Engineering I love riding my bike, rock climbing, watching movies, reading, playing videogames, and hanging out with my cats.',
   },
 ];
+
+const facts = [
+  { key: 'based_in', value: 'Kingston, ON' },
+  { key: 'origin', value: 'Brantford, ON' },
+  { key: 'program', value: "Computer Eng., Queen's" },
+  { key: 'focus', value: 'ML, CV, Quantum, Embedded' },
+  { key: 'status', value: 'open to opportunities' },
+];
 ---
 
 <Layout title="About">
   <div class="about">
     <p class="kicker">Who I Am</p>
-    <h1 class="page-title">About</h1>
+    <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
 
-    {sections.map((section, i) => (
-      <section data-reveal style={`transition-delay: ${i * 0.1}s`}>
-        <h2 class="section-heading">{section.heading}</h2>
-        <p>{section.body}</p>
-      </section>
-    ))}
+    <div class="layout">
+      <TerminalWindow filename="about.md" class="bio" data-reveal>
+        {sections.map((section) => (
+          <section>
+            <h2 class="section-heading">{section.heading}</h2>
+            <p>{section.body}</p>
+          </section>
+        ))}
+      </TerminalWindow>
+
+      <TerminalWindow filename="profile.json" class="facts" data-reveal style="transition-delay: 0.2s">
+        <dl>
+          {facts.map((fact) => (
+            <div class="fact">
+              <dt>{fact.key}:</dt>
+              <dd>"{fact.value}"</dd>
+            </div>
+          ))}
+        </dl>
+      </TerminalWindow>
+    </div>
   </div>
 </Layout>
 
 <style>
   .about {
-    max-width: var(--content-width);
+    max-width: var(--page-width);
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--space-3);
+    align-items: start;
+  }
+
+  section:not(:first-child) {
+    margin-top: var(--space-3);
+  }
+
+  section:first-child .section-heading {
+    margin-top: 0;
   }
 
   p {
     color: var(--color-text-muted);
+  }
+
+  dl {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .fact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  dt {
+    font-size: 0.75rem;
+    color: var(--color-secondary);
+  }
+
+  dd {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--color-text);
+    word-break: break-word;
+  }
+
+  @media (max-width: 720px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

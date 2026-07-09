@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import TerminalWindow from '../../components/TerminalWindow.astro';
 import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
@@ -15,13 +16,15 @@ const { Content } = await render(project);
 ---
 
 <Layout title={project.data.title}>
-  <article class="project" data-reveal>
+  <article class="project">
     <a href="/projects" class="back-link">&larr; Projects</a>
-    <h1>{project.data.title}</h1>
+    <h1 class="typewriter" style={`--steps: ${project.data.title.length}`}>{project.data.title}</h1>
     <p class="description">{project.data.description}</p>
-    <div class="content">
-      <Content />
-    </div>
+    <TerminalWindow filename={`${project.id}.md`} class="window" data-reveal>
+      <div class="content">
+        <Content />
+      </div>
+    </TerminalWindow>
   </article>
 </Layout>
 
@@ -31,13 +34,13 @@ const { Content } = await render(project);
   }
 
   h1 {
-    font-size: 2rem;
+    font-size: clamp(1.3rem, 5.5vw, 2rem);
     margin-bottom: var(--space-1);
   }
 
   .description {
     color: var(--color-text-faint);
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-3);
   }
 
   .content {

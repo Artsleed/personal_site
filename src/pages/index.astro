@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import TerminalWindow from '../components/TerminalWindow.astro';
 
+const name = 'Nathaniel Felsky-Deelstra';
 const skills = ['ML', 'Computer Vision', 'Quantum Computing', 'Embedded Systems'];
 ---
 
@@ -9,17 +10,17 @@ const skills = ['ML', 'Computer Vision', 'Quantum Computing', 'Embedded Systems'
   <div class="hero">
     <TerminalWindow filename="whoami.sh">
       <p class="comment"># Computer Engineering @ Queen's University</p>
-      <h1 data-reveal>Nathaniel Felsky-Deelstra</h1>
-      <p class="tagline" data-reveal style="transition-delay: 0.1s">
+      <h1 class="typewriter" style={`--steps: ${name.length}`}>{name}</h1>
+      <p class="tagline" data-reveal style="transition-delay: 0.5s">
         Building projects that fuse <span class="highlight">software</span> and <span class="highlight">hardware</span> to solve real problems. When I'm not working on a project I'm usually on a climbing wall, on a bike, or playing with my cats.
       </p>
 
-      <div class="cta-row" data-reveal style="transition-delay: 0.2s">
+      <div class="cta-row" data-reveal style="transition-delay: 0.65s">
         <a href="/projects" class="btn btn-primary">View Projects</a>
         <a href="/about" class="btn btn-outline">About Me</a>
       </div>
 
-      <div class="skills-output" data-reveal style="transition-delay: 0.3s">
+      <div class="skills-output" data-reveal style="transition-delay: 0.8s">
         <span class="prompt-line">$ echo $SKILLS</span>
         <div class="tag-row">
           {skills.map((skill) => (
@@ -42,8 +43,8 @@ const skills = ['ML', 'Computer Vision', 'Quantum Computing', 'Embedded Systems'
     margin: 0 0 var(--space-2) 0;
   }
 
-  h1 {
-    font-size: clamp(1.5rem, 4.3vw, 2.5rem);
+  h1.typewriter {
+    font-size: clamp(0.8rem, 4.3vw, 2.5rem);
     margin: 0 0 var(--space-2) 0;
   }
 

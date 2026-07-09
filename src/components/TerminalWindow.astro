@@ -2,12 +2,13 @@
 interface Props {
   filename: string;
   class?: string;
+  [key: string]: unknown;
 }
 
-const { filename, class: className } = Astro.props;
+const { filename, class: className, ...rest } = Astro.props;
 ---
 
-<div class:list={['terminal-window', className]}>
+<div class:list={['terminal-window', className]} {...rest}>
   <div class="titlebar">
     <span class="filename">{filename}</span>
   </div>

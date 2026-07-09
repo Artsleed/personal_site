@@ -2,6 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 
+const title = 'Blog';
+
 const posts = (await getCollection('blog')).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
 );
@@ -11,15 +13,15 @@ const posts = (await getCollection('blog')).sort(
 <Layout title="Blog">
   <div class="blog">
     <p class="kicker">Writing</p>
-    <h1 class="page-title">Blog</h1>
+    <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
     <div class="post-list">
       {posts.map((post, i) => (
         <a href={`/blog/${post.id}`} class="post" data-reveal style={`transition-delay: ${i * 0.08}s`}>
           <div class="titlebar">
             <span class="filename">{post.id}.md</span>
+            <span class="date-badge">{post.data.date.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
           </div>
           <div class="body">
-            <span class="date-badge">{post.data.date.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
             <h2>{post.data.title}</h2>
             <p>{post.data.description}</p>
           </div>
@@ -35,10 +37,9 @@ const posts = (await getCollection('blog')).sort(
   }
 
   .post-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: var(--space-3);
-    align-items: start;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
   }
 
   .post {
@@ -54,7 +55,7 @@ const posts = (await getCollection('blog')).sort(
 
   .post:hover {
     border-color: var(--color-accent);
-    transform: translateY(-3px);
+    transform: translateY(-2px);
     box-shadow: 0 8px 24px -12px color-mix(in srgb, var(--color-accent) 40%, transparent);
   }
 
@@ -65,8 +66,9 @@ const posts = (await getCollection('blog')).sort(
   .titlebar {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: var(--space-2);
-    padding: 0.55rem var(--space-2);
+    padding: 0.5rem var(--space-2);
     background: var(--color-chrome);
     border-bottom: 1px solid var(--color-chrome-border);
   }
@@ -80,16 +82,12 @@ const posts = (await getCollection('blog')).sort(
   }
 
   .body {
-    padding: var(--space-3);
-  }
-
-  .date-badge {
-    margin-bottom: 0.6rem;
+    padding: 0.9rem var(--space-3);
   }
 
   h2 {
-    font-size: 1.15rem;
-    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    margin: 0 0 0.35rem 0;
     transition: color var(--duration-fast) ease;
   }
 
@@ -97,6 +95,7 @@ const posts = (await getCollection('blog')).sort(
     margin: 0;
     color: var(--color-text-muted);
     font-size: 0.9rem;
+    max-width: 70ch;
   }
 
   @media (prefers-reduced-motion: reduce) {

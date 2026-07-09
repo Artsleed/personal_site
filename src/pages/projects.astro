@@ -2,6 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 import { getCollection } from 'astro:content';
 
+const title = 'Projects';
+
 const projects = (await getCollection('projects')).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
 );
@@ -10,7 +12,7 @@ const projects = (await getCollection('projects')).sort(
 <Layout title="Projects">
   <div class="projects">
     <p class="kicker">Work</p>
-    <h1 class="page-title">Projects</h1>
+    <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
     <div class="project-list">
       {projects.map((project, i) => (
         <a href={`/projects/${project.id}`} class="project" data-reveal style={`transition-delay: ${i * 0.08}s`}>

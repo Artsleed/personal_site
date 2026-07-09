@@ -1,13 +1,15 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import TerminalWindow from '../components/TerminalWindow.astro';
+
+const title = 'Resume';
 ---
 
 <Layout title="Resume">
   <div class="resume" data-reveal>
     <p class="kicker">CV</p>
     <div class="header">
-      <h1 class="page-title">Resume</h1>
+      <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
       <a href="/Nathaniel_Felsky_Deelstra_resume.pdf" download class="btn-download">Download PDF</a>
     </div>
     <div class="viewer">

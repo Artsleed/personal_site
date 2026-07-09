@@ -107,7 +107,7 @@ p {
 /* shared page chrome, reused across pages instead of duplicating per-file */
 .kicker {
   display: block;
-  color: var(--color-accent);
+  color: var(--color-text-muted);
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -162,6 +162,36 @@ p {
   border: 1px solid color-mix(in srgb, var(--color-secondary) 35%, transparent);
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
+}
+
+/* typewriter reveal for page headings; pass --steps: <char count> inline */
+.typewriter {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 0;
+  max-width: 100%;
+  border-right: 3px solid var(--color-accent);
+  animation:
+    type-in 0.7s steps(var(--steps)) 0.1s forwards,
+    type-caret 0.8s step-end infinite;
+}
+
+@keyframes type-in {
+  from { width: 0; }
+  to { width: min(var(--steps) * 1ch, 100%); }
+}
+
+@keyframes type-caret {
+  50% { border-color: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typewriter {
+    width: 100%;
+    animation: none;
+    border-right: none;
+  }
 }
 
 /* scroll-triggered reveal, toggled by src/scripts/reveal.ts */
