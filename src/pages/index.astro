@@ -3,12 +3,11 @@ import Layout from '../layouts/Layout.astro';
 import TerminalWindow from '../components/TerminalWindow.astro';
 
 const name = 'Nathaniel Felsky-Deelstra';
-const skills = ['ML', 'Computer Vision', 'Quantum Computing', 'Embedded Systems'];
 ---
 
 <Layout title="Home">
   <div class="hero">
-    <TerminalWindow filename="whoami.sh">
+    <TerminalWindow filename="whoami.md">
       <p class="comment"># Computer Engineering @ Queen's University</p>
       <h1 class="typewriter" style={`--steps: ${name.length}`}>{name}</h1>
       <p class="tagline" data-reveal style="transition-delay: 0.5s">
@@ -18,15 +17,6 @@ const skills = ['ML', 'Computer Vision', 'Quantum Computing', 'Embedded Systems'
       <div class="cta-row" data-reveal style="transition-delay: 0.65s">
         <a href="/projects" class="btn btn-primary">View Projects</a>
         <a href="/about" class="btn btn-outline">About Me</a>
-      </div>
-
-      <div class="skills-output" data-reveal style="transition-delay: 0.8s">
-        <span class="prompt-line">$ echo $SKILLS</span>
-        <div class="tag-row">
-          {skills.map((skill) => (
-            <span class="tag">{skill}</span>
-          ))}
-        </div>
       </div>
     </TerminalWindow>
   </div>
@@ -65,7 +55,6 @@ const skills = ['ML', 'Computer Vision', 'Quantum Computing', 'Embedded Systems'
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
-    margin-bottom: var(--space-4);
   }
 
   .btn {
@@ -99,32 +88,4 @@ const skills = ['ML', 'Computer Vision', 'Quantum Computing', 'Embedded Systems'
     color: var(--color-accent);
     transform: translateY(-2px);
   }
-
-  .skills-output {
-    border-top: 1px dashed var(--color-border);
-    padding-top: var(--space-3);
-  }
-
-  .prompt-line {
-    display: block;
-    color: var(--color-text-faint);
-    font-size: 0.85rem;
-    margin-bottom: 0.6rem;
-  }
-
-  .tag-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .tag {
-    font-size: 0.8rem;
-    color: var(--color-secondary);
-    background: color-mix(in srgb, var(--color-secondary) 14%, transparent);
-    border: 1px solid color-mix(in srgb, var(--color-secondary) 35%, transparent);
-    padding: 0.3rem 0.7rem;
-    border-radius: var(--radius);
-  }
-
 </style>
