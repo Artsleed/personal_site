@@ -18,42 +18,35 @@ const sections = [
     body: 'Outside of Engineering I love riding my bike, rock climbing, watching movies, reading, playing videogames, and hanging out with my cats.',
   },
 ];
-
-const facts = [
-  { key: 'based_in', value: 'Kingston, ON' },
-  { key: 'origin', value: 'Brantford, ON' },
-  { key: 'program', value: "Computer Eng., Queen's" },
-  { key: 'focus', value: 'ML, CV, Quantum, Embedded' },
-  { key: 'status', value: 'open to opportunities' },
-];
 ---
 
 <Layout title="About">
   <div class="about">
-    <p class="kicker">Who I Am</p>
-    <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
+    <div class="intro">
+      <div class="intro-text">
+        <p class="kicker">Who I Am</p>
+        <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
+      </div>
 
-    <div class="layout">
-      <TerminalWindow filename="about.md" class="bio" data-reveal>
-        {sections.map((section) => (
-          <section>
-            <h2 class="section-heading">{section.heading}</h2>
-            <p>{section.body}</p>
-          </section>
-        ))}
-      </TerminalWindow>
-
-      <TerminalWindow filename="profile.json" class="facts" data-reveal style="transition-delay: 0.2s">
-        <dl>
-          {facts.map((fact) => (
-            <div class="fact">
-              <dt>{fact.key}:</dt>
-              <dd>"{fact.value}"</dd>
-            </div>
-          ))}
-        </dl>
+      <TerminalWindow filename="portrait.jpg" class="portrait" data-reveal>
+        <div class="portrait-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7" />
+          </svg>
+          <span>// awaiting photo</span>
+        </div>
       </TerminalWindow>
     </div>
+
+    <TerminalWindow filename="about.md" class="bio" data-reveal style="transition-delay: 0.1s">
+      {sections.map((section) => (
+        <section>
+          <h2 class="section-heading">{section.heading}</h2>
+          <p>{section.body}</p>
+        </section>
+      ))}
+    </TerminalWindow>
   </div>
 </Layout>
 
@@ -62,11 +55,54 @@ const facts = [
     max-width: var(--page-width);
   }
 
-  .layout {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
+  .intro {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
     gap: var(--space-3);
-    align-items: start;
+    flex-wrap: wrap-reverse;
+    margin-bottom: var(--space-4);
+  }
+
+  .intro-text {
+    flex: 1 1 260px;
+    min-width: 0;
+  }
+
+  .intro .page-title {
+    margin-bottom: 0;
+  }
+
+  .portrait {
+    flex-shrink: 0;
+    width: 140px;
+  }
+
+  .portrait-placeholder {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    color: var(--color-text-faint);
+    background: color-mix(in srgb, var(--color-text-faint) 6%, transparent);
+    border: 1px dashed var(--color-chrome-border);
+    border-radius: var(--radius);
+  }
+
+  .portrait-placeholder svg {
+    width: 32%;
+    height: 32%;
+  }
+
+  .portrait-placeholder span {
+    font-size: 0.65rem;
+    text-align: center;
+  }
+
+  .bio {
+    max-width: 760px;
   }
 
   section:not(:first-child) {
@@ -79,36 +115,5 @@ const facts = [
 
   p {
     color: var(--color-text-muted);
-  }
-
-  dl {
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-  }
-
-  .fact {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-  }
-
-  dt {
-    font-size: 0.75rem;
-    color: var(--color-secondary);
-  }
-
-  dd {
-    margin: 0;
-    font-size: 0.9rem;
-    color: var(--color-text);
-    word-break: break-word;
-  }
-
-  @media (max-width: 720px) {
-    .layout {
-      grid-template-columns: 1fr;
-    }
   }
 </style>

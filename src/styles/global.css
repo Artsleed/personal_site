@@ -167,6 +167,7 @@ p {
 /* typewriter reveal for page headings; pass --steps: <char count> inline */
 .typewriter {
   display: block;
+  box-sizing: content-box;
   overflow: hidden;
   white-space: nowrap;
   width: 0;
@@ -179,7 +180,7 @@ p {
 
 @keyframes type-in {
   from { width: 0; }
-  to { width: min(var(--steps) * 1ch, 100%); }
+  to { width: min(calc(var(--steps) * 1ch + 2px), 100%); }
 }
 
 @keyframes type-caret {
