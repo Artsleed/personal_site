@@ -10,12 +10,23 @@ const projects = (await getCollection('projects')).sort(
 <Layout title="Projects">
   <div class="projects">
     <p class="kicker">Work</p>
-    <h1>Projects</h1>
+    <h1 class="page-title">Projects</h1>
     <div class="project-list">
-      {projects.map(project => (
-        <a href={`/projects/${project.id}`} class="project">
-          <h2>{project.data.title}</h2>
-          <p>{project.data.description}</p>
+      {projects.map((project, i) => (
+        <a href={`/projects/${project.id}`} class="project" data-reveal style={`transition-delay: ${i * 0.08}s`}>
+          <div class="titlebar">
+            <span class="dots">
+              <span class="dot dot-1"></span>
+              <span class="dot dot-2"></span>
+              <span class="dot dot-3"></span>
+            </span>
+            <span class="filename">{project.id}.md</span>
+            <span class="hud-date">{project.data.date.getFullYear()}</span>
+          </div>
+          <div class="body">
+            <h2>{project.data.title}</h2>
+            <p>{project.data.description}</p>
+          </div>
         </a>
       ))}
     </div>
@@ -27,54 +38,99 @@ const projects = (await getCollection('projects')).sort(
     max-width: var(--content-width);
   }
 
-  .kicker {
-    color: var(--color-accent);
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin: 0 0 var(--space-1) 0;
-  }
-
-  h1 {
-    font-size: 2rem;
-    margin: 0 0 var(--space-4) 0;
-  }
-
   .project-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
+    gap: var(--space-3);
   }
 
   .project {
     display: block;
     text-decoration: none;
     color: var(--color-text);
-    padding: var(--space-3);
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-chrome-border);
     border-radius: var(--radius);
-    transition: border-color 0.15s ease;
+    overflow: hidden;
+    transition: border-color var(--duration-fast) ease, transform var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
   }
 
   .project:hover {
     border-color: var(--color-accent);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px -12px color-mix(in srgb, var(--color-accent) 40%, transparent);
   }
 
   .project:hover h2 {
     color: var(--color-accent);
   }
 
+  .titlebar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 0.55rem var(--space-2);
+    background: var(--color-chrome);
+    border-bottom: 1px solid var(--color-chrome-border);
+  }
+
+  .dots {
+    display: flex;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+  }
+
+  .dot-1 { background: var(--color-dot-1); }
+  .dot-2 { background: var(--color-dot-2); }
+  .dot-3 { background: var(--color-dot-3); }
+
+  .filename {
+    font-size: 0.78rem;
+    color: var(--color-text-faint);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .hud-date {
+    font-size: 0.72rem;
+    color: var(--color-secondary);
+    opacity: 0;
+    transform: translateX(6px);
+    transition: opacity var(--duration-base) ease, transform var(--duration-base) ease;
+  }
+
+  .project:hover .hud-date {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .body {
+    padding: var(--space-3);
+  }
+
   h2 {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
     margin: 0 0 0.5rem 0;
-    transition: color 0.15s ease;
+    transition: color var(--duration-fast) ease;
   }
 
   p {
     margin: 0;
     color: var(--color-text-muted);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project:hover {
+      transform: none;
+    }
   }
 </style>

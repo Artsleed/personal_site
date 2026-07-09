@@ -15,9 +15,9 @@ const { Content } = await render(post);
 ---
 
 <Layout title={post.data.title}>
-  <article class="post">
-    <a href="/blog" class="back">&larr; Blog</a>
-    <span class="date">{post.data.date.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+  <article class="post" data-reveal>
+    <a href="/blog" class="back-link">&larr; Blog</a>
+    <span class="date-badge">{post.data.date.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
     <h1>{post.data.title}</h1>
     <div class="content">
       <Content />
@@ -28,28 +28,6 @@ const { Content } = await render(post);
 <style>
   .post {
     max-width: var(--content-width);
-  }
-
-  .back {
-    display: inline-block;
-    color: var(--color-text-muted);
-    text-decoration: none;
-    font-size: 0.9rem;
-    margin-bottom: var(--space-3);
-  }
-
-  .back:hover {
-    color: var(--color-accent);
-  }
-
-  .date {
-    display: inline-block;
-    font-size: 0.75rem;
-    color: var(--color-secondary);
-    background: color-mix(in srgb, var(--color-secondary) 14%, transparent);
-    border: 1px solid color-mix(in srgb, var(--color-secondary) 35%, transparent);
-    padding: 0.2rem 0.6rem;
-    border-radius: 999px;
   }
 
   h1 {

@@ -1,26 +1,33 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+const sections = [
+  {
+    heading: 'Background',
+    body: "Hello! My name is Nathaniel, and I'm a Computer Engineering student at Queen's University. I'm originally from Brantford, Ontario where my love of videogames and technology led me to explore the interactions between hardware and software. Being able to take any problem, break it down and then solve it is one of my favorite feelings in the world.",
+  },
+  {
+    heading: 'Engineering',
+    body: "I'm most passionate about projects that solve real issues and every now and then I like to throw in a random project just for fun. Im most interested in ML, CV, Quantum compute, and embedded systems.",
+  },
+  {
+    heading: 'Outside Engineering',
+    body: 'Outside of Engineering I love riding my bike, rock climbing, watching movies, reading, playing videogames, and hanging out with my cats.',
+  },
+];
 ---
 
 <Layout title="About">
   <div class="about">
     <p class="kicker">Who I Am</p>
-    <h1>About</h1>
+    <h1 class="page-title">About</h1>
 
-    <section>
-      <h2>Background</h2>
-      <p>Hello! My name is Nathaniel, and I'm a Computer Engineering student at Queen's University. I'm originally from Brantford, Ontario where my love of videogames and technology led me to explore the interactions between hardware and software. Being able to take any problem, break it down and then solve it is one of my favorite feelings in the world.</p>
-    </section>
-
-    <section>
-      <h2>Engineering</h2>
-      <p>I'm most passionate about projects that solve real issues and every now and then I like to throw in a random project just for fun. Im most interested in ML, CV, Quantum compute, and embedded systems.</p>
-    </section>
-
-    <section>
-      <h2>Outside Engineering</h2>
-      <p>Outside of Engineering I love riding my bike, rock climbing, watching movies, reading, playing videogames, and hanging out with my cats.</p>
-    </section>
+    {sections.map((section, i) => (
+      <section data-reveal style={`transition-delay: ${i * 0.1}s`}>
+        <h2 class="section-heading">{section.heading}</h2>
+        <p>{section.body}</p>
+      </section>
+    ))}
   </div>
 </Layout>
 
@@ -29,29 +36,7 @@ import Layout from '../layouts/Layout.astro';
     max-width: var(--content-width);
   }
 
-  .kicker {
-    color: var(--color-accent);
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin: 0 0 var(--space-1) 0;
-  }
-
-  h1 {
-    font-size: 2rem;
-    margin: 0 0 var(--space-4) 0;
-  }
-
-  h2 {
-    font-size: 1.2rem;
-    margin: var(--space-4) 0 var(--space-1) 0;
-    padding-left: 0.75rem;
-    border-left: 3px solid var(--color-accent);
-  }
-
   p {
-    line-height: 1.7;
     color: var(--color-text-muted);
   }
 </style>

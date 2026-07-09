@@ -1,3 +1,9 @@
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/600.css";
+@import "@fontsource/jetbrains-mono/700.css";
+@import "@fontsource/jetbrains-mono/400-italic.css";
+
 :root {
   --color-bg: #0b0a09;
   --color-surface: #161412;
@@ -10,7 +16,16 @@
   --color-secondary: #2283c3;
   --color-secondary-contrast: #f2f1ef;
 
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* terminal chrome */
+  --color-chrome: #1c1916;
+  --color-chrome-border: #322c25;
+  --color-dot-1: var(--color-accent);
+  --color-dot-2: var(--color-secondary);
+  --color-dot-3: var(--color-text-faint);
+  --color-scanline: rgba(242, 241, 239, 0.025);
+  --color-grid: rgba(242, 241, 239, 0.035);
+
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 
   --space-1: 0.5rem;
   --space-2: 1rem;
@@ -21,6 +36,12 @@
   --radius: 6px;
   --content-width: 650px;
   --page-width: 900px;
+
+  /* motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 0.15s;
+  --duration-base: 0.3s;
+  --duration-slow: 0.6s;
 }
 
 *,
@@ -37,11 +58,32 @@ body {
 }
 
 body {
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   background: var(--color-bg);
   color: var(--color-text);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(var(--color-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-grid) 1px, transparent 1px),
+    repeating-linear-gradient(
+      to bottom,
+      var(--color-scanline) 0,
+      var(--color-scanline) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  background-size: 48px 48px, 48px 48px, 100% 3px;
+  opacity: 0.5;
 }
 
 a {
@@ -51,4 +93,96 @@ a {
 ::selection {
   background: var(--color-accent);
   color: var(--color-accent-contrast);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+p {
+  line-height: 1.7;
+}
+
+/* shared page chrome, reused across pages instead of duplicating per-file */
+.kicker {
+  display: block;
+  color: var(--color-accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 var(--space-1) 0;
+}
+
+.kicker::before {
+  content: "> ";
+  color: var(--color-text-faint);
+}
+
+.page-title {
+  font-size: 2rem;
+  margin: 0 0 var(--space-4) 0;
+}
+
+.section-heading {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: var(--space-4) 0 0.75rem 0;
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--color-accent);
+  color: var(--color-text-muted);
+}
+
+.section-heading::before {
+  content: "// ";
+  color: var(--color-text-faint);
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  margin-bottom: var(--space-3);
+  transition: color var(--duration-fast) ease;
+}
+
+.back-link:hover {
+  color: var(--color-accent);
+}
+
+.date-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: var(--color-secondary);
+  background: color-mix(in srgb, var(--color-secondary) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-secondary) 35%, transparent);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+/* scroll-triggered reveal, toggled by src/scripts/reveal.ts */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity var(--duration-slow) var(--ease-out), transform var(--duration-slow) var(--ease-out);
+}
+
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }

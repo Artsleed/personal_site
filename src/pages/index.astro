@@ -1,24 +1,34 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import TerminalWindow from '../components/TerminalWindow.astro';
+
+const name = 'Nathaniel Felsky-Deelstra';
+const skills = ['ML', 'Computer Vision', 'Quantum Computing', 'Embedded Systems'];
 ---
 
 <Layout title="Home">
   <div class="hero">
-    <p class="kicker">Computer Engineering @ Queen's University</p>
-    <h1>Nathaniel Felsky-Deelstra</h1>
-    <p class="tagline">Building projects that fuse <span class="highlight">software</span> and <span class="highlight">hardware</span> to solve real problems. When I'm not working on a project I'm usually on a climbing wall, on a bike, or playing with my cats.</p>
+    <TerminalWindow filename="whoami.sh">
+      <p class="comment"># Computer Engineering @ Queen's University</p>
+      <h1 class="typewriter" style={`--steps: ${name.length}`}>{name}</h1>
+      <p class="tagline" data-reveal style="transition-delay: 0.5s">
+        Building projects that fuse <span class="highlight">software</span> and <span class="highlight">hardware</span> to solve real problems. When I'm not working on a project I'm usually on a climbing wall, on a bike, or playing with my cats.
+      </p>
 
-    <div class="cta-row">
-      <a href="/projects" class="btn btn-primary">View Projects</a>
-      <a href="/about" class="btn btn-outline">About Me</a>
-    </div>
+      <div class="cta-row" data-reveal style="transition-delay: 0.65s">
+        <a href="/projects" class="btn btn-primary">View Projects</a>
+        <a href="/about" class="btn btn-outline">About Me</a>
+      </div>
 
-    <div class="tag-row">
-      <span class="tag">ML</span>
-      <span class="tag">Computer Vision</span>
-      <span class="tag">Quantum Computing</span>
-      <span class="tag">Embedded Systems</span>
-    </div>
+      <div class="skills-output" data-reveal style="transition-delay: 0.8s">
+        <span class="prompt-line">$ echo $SKILLS</span>
+        <div class="tag-row">
+          {skills.map((skill) => (
+            <span class="tag">{skill}</span>
+          ))}
+        </div>
+      </div>
+    </TerminalWindow>
   </div>
 </Layout>
 
@@ -27,23 +37,28 @@ import Layout from '../layouts/Layout.astro';
     padding: var(--space-5) 0;
   }
 
-  .kicker {
-    color: var(--color-accent);
+  .comment {
+    color: var(--color-text-faint);
     font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
     margin: 0 0 var(--space-2) 0;
   }
 
-  h1 {
-    font-size: 2.75rem;
+  h1.typewriter {
+    font-size: clamp(0.8rem, 4.3vw, 2.5rem);
     margin: 0 0 var(--space-2) 0;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 0;
+    border-right: 3px solid var(--color-accent);
+    animation:
+      typing 1.1s steps(var(--steps)) 0.2s forwards,
+      caret 0.8s step-end infinite;
   }
 
   .tagline {
-    font-size: 1.1rem;
-    line-height: 1.6;
+    font-size: 1.05rem;
+    line-height: 1.7;
     max-width: var(--content-width);
     color: var(--color-text-muted);
     margin: 0 0 var(--space-4) 0;
@@ -65,11 +80,11 @@ import Layout from '../layouts/Layout.astro';
     display: inline-block;
     padding: 0.65rem 1.4rem;
     border-radius: var(--radius);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 600;
     text-decoration: none;
     border: 1px solid transparent;
-    transition: opacity 0.15s ease, border-color 0.15s ease;
+    transition: opacity var(--duration-fast) ease, border-color var(--duration-fast) ease, transform var(--duration-fast) ease;
   }
 
   .btn-primary {
@@ -79,6 +94,7 @@ import Layout from '../layouts/Layout.astro';
 
   .btn-primary:hover {
     opacity: 0.88;
+    transform: translateY(-2px);
   }
 
   .btn-outline {
@@ -89,6 +105,19 @@ import Layout from '../layouts/Layout.astro';
   .btn-outline:hover {
     border-color: var(--color-accent);
     color: var(--color-accent);
+    transform: translateY(-2px);
+  }
+
+  .skills-output {
+    border-top: 1px dashed var(--color-border);
+    padding-top: var(--space-3);
+  }
+
+  .prompt-line {
+    display: block;
+    color: var(--color-text-faint);
+    font-size: 0.85rem;
+    margin-bottom: 0.6rem;
   }
 
   .tag-row {
@@ -103,6 +132,23 @@ import Layout from '../layouts/Layout.astro';
     background: color-mix(in srgb, var(--color-secondary) 14%, transparent);
     border: 1px solid color-mix(in srgb, var(--color-secondary) 35%, transparent);
     padding: 0.3rem 0.7rem;
-    border-radius: 999px;
+    border-radius: var(--radius);
+  }
+
+  @keyframes typing {
+    from { width: 0; }
+    to { width: min(var(--steps) * 1ch, 100%); }
+  }
+
+  @keyframes caret {
+    50% { border-color: transparent; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    h1.typewriter {
+      width: 100%;
+      animation: none;
+      border-right: none;
+    }
   }
 </style>
