@@ -9,31 +9,42 @@ const title = 'Resume';
   <div class="resume" data-reveal>
     <p class="kicker">CV</p>
     <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
-    <div class="viewer">
-      <TerminalWindow filename="Nathaniel_Felsky_Deelstra_resume.pdf">
-        <iframe
-          class="resume-frame"
-          src="/Nathaniel_Felsky_Deelstra_resume.pdf"
-          width="100%"
-          height="900px"
-        />
-      </TerminalWindow>
+    <div class="viewer-breakout">
+      <div class="viewer">
+        <TerminalWindow filename="Nathaniel_Felsky_Deelstra_resume.pdf">
+          <iframe
+            class="resume-frame"
+            src="/Nathaniel_Felsky_Deelstra_resume.pdf"
+            width="100%"
+            height="900px"
+          />
+        </TerminalWindow>
+      </div>
     </div>
   </div>
 </Layout>
 
 <style>
-  :global(main:has(.resume)) {
-    margin: 0 auto;
+  /* main is left-justified (not centered) site-wide, and always starts at
+     the viewport's left edge, so breaking out to the true viewport width
+     just means cancelling main's own horizontal padding here (kept in
+     sync with Layout.astro's `main` padding/breakpoint). */
+  .viewer-breakout {
+    width: 100vw;
+    margin-left: calc(-1 * var(--space-5));
+    margin-top: var(--space-3);
   }
 
-  .resume {
-    max-width: 900px;
-    margin: 0 auto;
+  @media (max-width: 480px) {
+    .viewer-breakout {
+      margin-left: calc(-1 * var(--space-3));
+    }
   }
 
   .viewer {
-    margin-top: var(--space-3);
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 var(--space-4);
   }
 
   .resume-frame {
