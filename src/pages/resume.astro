@@ -8,10 +8,7 @@ const title = 'Resume';
 <Layout title="Resume">
   <div class="resume" data-reveal>
     <p class="kicker">CV</p>
-    <div class="header">
-      <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
-      <a href="/Nathaniel_Felsky_Deelstra_resume.pdf" download class="btn-download">Download PDF</a>
-    </div>
+    <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
     <div class="viewer">
       <TerminalWindow filename="Nathaniel_Felsky_Deelstra_resume.pdf">
         <iframe
@@ -26,37 +23,13 @@ const title = 'Resume';
 </Layout>
 
 <style>
-  .resume {
-    max-width: 900px;
+  :global(main:has(.resume)) {
     margin: 0 auto;
   }
 
-  .header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2);
-  }
-
-  .page-title {
-    margin: 0;
-  }
-
-  .btn-download {
-    padding: 0.6rem 1.3rem;
-    text-decoration: none;
-    color: var(--color-accent-contrast);
-    background: var(--color-accent);
-    font-size: 0.9rem;
-    font-weight: 600;
-    border-radius: var(--radius);
-    transition: opacity var(--duration-fast) ease, transform var(--duration-fast) ease;
-  }
-
-  .btn-download:hover {
-    opacity: 0.88;
-    transform: translateY(-2px);
+  .resume {
+    max-width: 900px;
+    margin: 0 auto;
   }
 
   .viewer {
