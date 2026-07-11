@@ -13,19 +13,21 @@ const projects = (await getCollection('projects')).sort(
   <div class="projects">
     <p class="kicker">Work</p>
     <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
-    <div class="project-list">
-      {projects.map((project, i) => (
-        <a href={`/projects/${project.id}`} class="project" data-reveal style={`transition-delay: ${i * 0.08}s`}>
-          <div class="titlebar">
-            <span class="filename">{project.id}.md</span>
-            <span class="hud-date">{project.data.date.getFullYear()}</span>
-          </div>
-          <div class="body">
-            <h2>{project.data.title}</h2>
-            <p>{project.data.description}</p>
-          </div>
-        </a>
-      ))}
+    <div class="list-breakout">
+      <div class="project-list">
+        {projects.map((project, i) => (
+          <a href={`/projects/${project.id}`} class="project" data-reveal style={`transition-delay: ${i * 0.08}s`}>
+            <div class="titlebar">
+              <span class="filename">{project.id}.md</span>
+              <span class="hud-date">{project.data.date.getFullYear()}</span>
+            </div>
+            <div class="body">
+              <h2>{project.data.title}</h2>
+              <p>{project.data.description}</p>
+            </div>
+          </a>
+        ))}
+      </div>
     </div>
   </div>
 </Layout>
@@ -35,11 +37,28 @@ const projects = (await getCollection('projects')).sort(
     max-width: var(--page-width);
   }
 
+  /* main is left-justified and capped at --page-width, so this breaks
+     out to the true viewport width (same technique as the resume PDF
+     viewer) instead of leaving the grid capped and letting blank space
+     sit unused on wide screens. */
+  .list-breakout {
+    width: 100vw;
+    margin-left: calc(-1 * var(--space-5));
+    margin-top: var(--space-4);
+  }
+
+  @media (max-width: 480px) {
+    .list-breakout {
+      margin-left: calc(-1 * var(--space-3));
+    }
+  }
+
   .project-list {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: var(--space-3);
     align-items: stretch;
+    padding: 0 var(--space-5);
   }
 
   @media (max-width: 960px) {
@@ -51,6 +70,12 @@ const projects = (await getCollection('projects')).sort(
   @media (max-width: 560px) {
     .project-list {
       grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .project-list {
+      padding: 0 var(--space-3);
     }
   }
 
