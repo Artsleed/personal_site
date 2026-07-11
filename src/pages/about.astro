@@ -18,6 +18,15 @@ const sections = [
     body: 'Outside of Engineering I love riding my bike, rock climbing, watching movies, reading, playing videogames, and hanging out with my cats.',
   },
 ];
+
+const interests = [
+  { id: 'climbing', label: 'Climbing', fact: 'Currently projecting 5.11 routes at the local gym.' },
+  { id: 'biking', label: 'Biking', fact: "Will happily ride 50km just because the weather's good." },
+  { id: 'gaming', label: 'Gaming', fact: 'Building game hardware is half of why I got into embedded systems.' },
+  { id: 'movies', label: 'Movies', fact: 'Letterboxd addict - check the Now page for the latest watch.' },
+  { id: 'reading', label: 'Reading', fact: "Mostly sci-fi, plus the occasional textbook I didn't have to read." },
+  { id: 'cats', label: 'Cats', fact: 'Two cats supervise every soldering session.' },
+];
 ---
 
 <Layout title="About">
@@ -45,8 +54,85 @@ const sections = [
         </div>
       </TerminalWindow>
     </div>
+
+    <TerminalWindow filename="interests.txt" class="interests" data-reveal style="transition-delay: 0.2s">
+      <span class="prompt-line">$ cat interests.txt</span>
+      <div class="interest-row">
+        <button type="button" class="interest-icon" data-fact={interests[0].fact} aria-label={interests[0].label}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M3 20l6-11 4 6 2-3 6 8H3z" />
+          </svg>
+          <span>{interests[0].label}</span>
+        </button>
+
+        <button type="button" class="interest-icon" data-fact={interests[1].fact} aria-label={interests[1].label}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <circle cx="6" cy="17" r="3.5" />
+            <circle cx="18" cy="17" r="3.5" />
+            <path d="M6 17l4-8h4l4 8M10 9h4M13 5h3l2 4" />
+          </svg>
+          <span>{interests[1].label}</span>
+        </button>
+
+        <button type="button" class="interest-icon" data-fact={interests[2].fact} aria-label={interests[2].label}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <rect x="3" y="8" width="18" height="9" rx="4" />
+            <path d="M8 12h-2m1-1v2M15 12h.01M18 10h.01" />
+          </svg>
+          <span>{interests[2].label}</span>
+        </button>
+
+        <button type="button" class="interest-icon" data-fact={interests[3].fact} aria-label={interests[3].label}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <rect x="3" y="7" width="18" height="13" rx="1.5" />
+            <path d="M3 11h18M6 7l2-4h3l-2 4M13 7l2-4h3l-2 4" />
+          </svg>
+          <span>{interests[3].label}</span>
+        </button>
+
+        <button type="button" class="interest-icon" data-fact={interests[4].fact} aria-label={interests[4].label}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5v14z" />
+            <path d="M4 19.5A2.5 2.5 0 006.5 22H20" />
+          </svg>
+          <span>{interests[4].label}</span>
+        </button>
+
+        <button type="button" class="interest-icon" data-fact={interests[5].fact} aria-label={interests[5].label}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <circle cx="7" cy="9" r="1.7" />
+            <circle cx="12" cy="6.5" r="1.7" />
+            <circle cx="17" cy="9" r="1.7" />
+            <path d="M8 14c0-2.5 2-4 4-4s4 1.5 4 4-2 4-4 4-4-1.5-4-4z" />
+          </svg>
+          <span>{interests[5].label}</span>
+        </button>
+      </div>
+      <p class="interest-fact" id="interest-fact">hover or tap an icon</p>
+    </TerminalWindow>
   </div>
 </Layout>
+
+<script>
+  function initInterests() {
+    const buttons = document.querySelectorAll<HTMLButtonElement>('.interest-icon');
+    const output = document.getElementById('interest-fact');
+    if (!output || buttons.length === 0) return;
+
+    const show = (btn: HTMLButtonElement) => {
+      output.textContent = btn.dataset.fact ?? '';
+      buttons.forEach((b) => b.classList.toggle('active', b === btn));
+    };
+
+    buttons.forEach((btn) => {
+      btn.addEventListener('mouseenter', () => show(btn));
+      btn.addEventListener('focus', () => show(btn));
+      btn.addEventListener('click', () => show(btn));
+    });
+  }
+
+  document.addEventListener('astro:page-load', initInterests);
+</script>
 
 <style>
   .about {
@@ -103,5 +189,66 @@ const sections = [
 
   p {
     color: var(--color-text-muted);
+  }
+
+  .interests {
+    margin-top: var(--space-3);
+  }
+
+  .prompt-line {
+    display: block;
+    color: var(--color-text-faint);
+    font-size: 0.85rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .interest-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: var(--space-3);
+  }
+
+  .interest-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    width: 84px;
+    padding: 0.75rem 0.5rem;
+    background: transparent;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-chrome-border);
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease, background var(--duration-fast) ease;
+  }
+
+  .interest-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .interest-icon:hover,
+  .interest-icon:focus-visible,
+  .interest-icon.active {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    outline: none;
+  }
+
+  .interest-fact {
+    margin: 0;
+    padding-top: var(--space-2);
+    border-top: 1px dashed var(--color-border);
+    min-height: 1.4em;
+  }
+
+  .interest-fact::before {
+    content: '// ';
+    color: var(--color-text-faint);
   }
 </style>
