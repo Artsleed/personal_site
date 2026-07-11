@@ -9,7 +9,6 @@ const title = 'Now';
   <div class="now">
     <p class="kicker">Today</p>
     <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
-    <p class="updated">// last updated: May 2026</p>
 
     <TerminalWindow filename="now.md" data-reveal>
       <section>
@@ -91,11 +90,10 @@ const title = 'Now';
     }
   }
 
-  fetchNowPlaying();
-  setInterval(fetchNowPlaying, 30000);
-
   async function fetchLetterboxd() {
     const container = document.getElementById('letterboxd');
+    if (!container) return;
+
     try {
       const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://letterboxd.com/Artsleed/rss/');
       const data = await res.json();
@@ -123,7 +121,16 @@ const title = 'Now';
     }
   }
 
-  fetchLetterboxd();
+  let nowPlayingInterval;
+
+  function init() {
+    fetchNowPlaying();
+    fetchLetterboxd();
+    clearInterval(nowPlayingInterval);
+    nowPlayingInterval = setInterval(fetchNowPlaying, 30000);
+  }
+
+  document.addEventListener('astro:page-load', init);
 </script>
 
 <style>
@@ -132,12 +139,6 @@ const title = 'Now';
   }
 
   .page-title {
-    margin-bottom: 0.25rem;
-  }
-
-  .updated {
-    color: var(--color-text-faint);
-    font-size: 0.85rem;
     margin-bottom: var(--space-4);
   }
 

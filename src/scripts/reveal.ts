@@ -23,5 +23,4 @@ function initReveal() {
   elements.forEach((el) => observer.observe(el));
 }
 
-initReveal();
 document.addEventListener('astro:page-load', initReveal);
