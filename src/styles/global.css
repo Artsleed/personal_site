@@ -164,6 +164,28 @@ p {
   border-radius: 999px;
 }
 
+/*
+ * `main` is intentionally left-justified (no margin: auto) and capped at
+ * --page-width, so it never spans the true viewport width on wide screens -
+ * anything inside it is capped too, even if it "fills its container".
+ * The naive full-bleed CSS trick (left: 50%; margin-left: -50vw) assumes a
+ * *centered* parent and silently breaks here (it did, twice) - use this
+ * class instead whenever something needs to span the real viewport width.
+ * Pairs with padding-inline: var(--space-5) (var(--space-3) below 480px) on
+ * the same element, or on a child, to keep its content edge-aligned with
+ * the rest of the page instead of touching the true viewport edge.
+ */
+.full-bleed {
+  width: 100vw;
+  margin-left: calc(-1 * var(--space-5));
+}
+
+@media (max-width: 480px) {
+  .full-bleed {
+    margin-left: calc(-1 * var(--space-3));
+  }
+}
+
 /* typewriter reveal for page headings; pass --steps: <char count> inline */
 .typewriter {
   display: block;

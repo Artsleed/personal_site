@@ -6,7 +6,7 @@ const name = 'Nathaniel Felsky-Deelstra';
 ---
 
 <Layout title="Home">
-  <div class="hero">
+  <div class="hero full-bleed">
     <TerminalWindow filename="whoami.md">
       <p class="comment"># Computer Engineering @ Queen's University</p>
       <h1 class="typewriter" style={`--steps: ${name.length}`}>{name}</h1>
@@ -24,7 +24,13 @@ const name = 'Nathaniel Felsky-Deelstra';
 
 <style>
   .hero {
-    padding: var(--space-5) 0;
+    padding: var(--space-5);
+  }
+
+  @media (max-width: 480px) {
+    .hero {
+      padding: var(--space-5) var(--space-3);
+    }
   }
 
   .comment {
@@ -41,7 +47,7 @@ const name = 'Nathaniel Felsky-Deelstra';
   .tagline {
     font-size: 1.05rem;
     line-height: 1.7;
-    max-width: var(--content-width);
+    max-width: 900px;
     color: var(--color-text-muted);
     margin: 0 0 var(--space-4) 0;
   }

@@ -9,7 +9,7 @@ const title = 'Resume';
   <div class="resume" data-reveal>
     <p class="kicker">CV</p>
     <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
-    <div class="viewer-breakout">
+    <div class="full-bleed viewer-breakout">
       <div class="viewer">
         <TerminalWindow filename="Nathaniel_Felsky_Deelstra_resume.pdf">
           <iframe
@@ -25,20 +25,8 @@ const title = 'Resume';
 </Layout>
 
 <style>
-  /* main is left-justified (not centered) site-wide, and always starts at
-     the viewport's left edge, so breaking out to the true viewport width
-     just means cancelling main's own horizontal padding here (kept in
-     sync with Layout.astro's `main` padding/breakpoint). */
   .viewer-breakout {
-    width: 100vw;
-    margin-left: calc(-1 * var(--space-5));
     margin-top: var(--space-3);
-  }
-
-  @media (max-width: 480px) {
-    .viewer-breakout {
-      margin-left: calc(-1 * var(--space-3));
-    }
   }
 
   .viewer {
