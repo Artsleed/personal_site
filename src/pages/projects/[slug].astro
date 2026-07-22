@@ -20,11 +20,13 @@ const { Content } = await render(project);
     <a href="/projects" class="back-link">&larr; Projects</a>
     <h1 class="typewriter" style={`--steps: ${project.data.title.length}`}>{project.data.title}</h1>
     <p class="description">{project.data.description}</p>
-    <TerminalWindow filename={`${project.id}.md`} class="window" data-reveal>
-      <div class="content">
-        <Content />
-      </div>
-    </TerminalWindow>
+    <div class="full-bleed window-breakout">
+      <TerminalWindow filename={`${project.id}.md`} class="window" data-reveal>
+        <div class="content">
+          <Content />
+        </div>
+      </TerminalWindow>
+    </div>
   </article>
 </Layout>
 
@@ -41,6 +43,16 @@ const { Content } = await render(project);
   .description {
     color: var(--color-text-faint);
     margin-bottom: var(--space-3);
+  }
+
+  .window-breakout {
+    padding: 0 var(--space-5);
+  }
+
+  @media (max-width: 480px) {
+    .window-breakout {
+      padding: 0 var(--space-3);
+    }
   }
 
   .content {

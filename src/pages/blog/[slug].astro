@@ -20,11 +20,13 @@ const { Content } = await render(post);
     <a href="/blog" class="back-link">&larr; Blog</a>
     <span class="date-badge">{post.data.date.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
     <h1 class="typewriter" style={`--steps: ${post.data.title.length}`}>{post.data.title}</h1>
-    <TerminalWindow filename={`${post.id}.md`} class="window" data-reveal>
-      <div class="content">
-        <Content />
-      </div>
-    </TerminalWindow>
+    <div class="full-bleed window-breakout">
+      <TerminalWindow filename={`${post.id}.md`} class="window" data-reveal>
+        <div class="content">
+          <Content />
+        </div>
+      </TerminalWindow>
+    </div>
   </article>
 </Layout>
 
@@ -36,6 +38,17 @@ const { Content } = await render(post);
   h1 {
     font-size: clamp(1.3rem, 5.5vw, 2rem);
     margin: 0.75rem 0 var(--space-3) 0;
+  }
+
+  .window-breakout {
+    padding: 0 var(--space-5);
+    margin-top: var(--space-1);
+  }
+
+  @media (max-width: 480px) {
+    .window-breakout {
+      padding: 0 var(--space-3);
+    }
   }
 
   .content {

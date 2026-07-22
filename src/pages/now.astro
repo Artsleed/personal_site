@@ -10,29 +10,31 @@ const title = 'Now';
     <p class="kicker">Today</p>
     <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
 
-    <TerminalWindow filename="now.md" data-reveal>
-      <section>
-        <h2 class="section-heading">Now Playing</h2>
-        <div id="now-playing" class="now-playing">
-          <p class="loading">Loading...</p>
-        </div>
-      </section>
+    <div class="full-bleed now-window">
+      <TerminalWindow filename="now.md" data-reveal>
+        <section>
+          <h2 class="section-heading">Now Playing</h2>
+          <div id="now-playing" class="now-playing">
+            <p class="loading">Loading...</p>
+          </div>
+        </section>
 
-      <section>
-        <h2 class="section-heading">What I'm Working On</h2>
-        <ul>
-          <li>finishing this website</li>
-          <li>Another thing you're working on, is also trying to find a way to spend the summer</li>
-        </ul>
-      </section>
+        <section>
+          <h2 class="section-heading">What I'm Working On</h2>
+          <ul>
+            <li>finishing this website</li>
+            <li>Another thing you're working on, is also trying to find a way to spend the summer</li>
+          </ul>
+        </section>
 
-      <section>
-        <h2 class="section-heading">Recently Watched</h2>
-        <div id="letterboxd" class="films">
-          <p class="loading">Loading...</p>
-        </div>
-      </section>
-    </TerminalWindow>
+        <section>
+          <h2 class="section-heading">Recently Watched</h2>
+          <div id="letterboxd" class="films">
+            <p class="loading">Loading...</p>
+          </div>
+        </section>
+      </TerminalWindow>
+    </div>
   </div>
 </Layout>
 
@@ -140,6 +142,16 @@ const title = 'Now';
 
   .page-title {
     margin-bottom: var(--space-4);
+  }
+
+  .now-window {
+    padding: 0 var(--space-5);
+  }
+
+  @media (max-width: 480px) {
+    .now-window {
+      padding: 0 var(--space-3);
+    }
   }
 
   section:not(:first-child) {
