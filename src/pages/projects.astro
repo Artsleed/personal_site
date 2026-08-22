@@ -12,19 +12,17 @@ const projects = (await getCollection('projects')).sort(
 <Layout title="Projects">
   <div class="projects">
     <p class="kicker">Work</p>
-    <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
+    <h1 class="page-title">{title}</h1>
     <div class="full-bleed list-breakout">
       <div class="project-list">
         {projects.map((project, i) => (
-          <a href={`/projects/${project.id}`} class="project" data-reveal style={`transition-delay: ${i * 0.08}s`}>
-            <div class="titlebar">
-              <span class="filename">{project.id}.md</span>
-              <span class="hud-date">{project.data.date.getFullYear()}</span>
+          <a href={`/projects/${project.id}`} class="project ticked tilt" data-reveal style={`transition-delay: ${i * 0.06}s`}>
+            <div class="meta">
+              <span class="spec-label">{project.data.status}</span>
+              <span class="year">{project.data.date.getFullYear()}</span>
             </div>
-            <div class="body">
-              <h2>{project.data.title}</h2>
-              <p>{project.data.description}</p>
-            </div>
+            <h2>{project.data.title}</h2>
+            <p>{project.data.description}</p>
           </a>
         ))}
       </div>
@@ -70,57 +68,32 @@ const projects = (await getCollection('projects')).sort(
   .project {
     display: block;
     text-decoration: none;
-    color: var(--color-text);
+    color: var(--color-heading);
     background: var(--color-surface);
-    border: 1px solid var(--color-chrome-border);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius);
-    overflow: hidden;
-    transition: border-color var(--duration-fast) ease, transform var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
-  }
-
-  .project:hover {
-    border-color: var(--color-accent);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 24px -12px color-mix(in srgb, var(--color-accent) 40%, transparent);
+    padding: var(--space-3);
   }
 
   .project:hover h2 {
     color: var(--color-accent);
   }
 
-  .titlebar {
+  .meta {
     display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    padding: 0.55rem var(--space-2);
-    background: var(--color-chrome);
-    border-bottom: 1px solid var(--color-chrome-border);
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: var(--space-2);
   }
 
-  .filename {
-    font-size: 0.78rem;
-    color: var(--color-text-faint);
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .meta .spec-label {
+    margin-bottom: 0;
   }
 
-  .hud-date {
+  .year {
+    font-family: var(--font-mono);
     font-size: 0.72rem;
-    color: var(--color-secondary);
-    opacity: 0;
-    transform: translateX(6px);
-    transition: opacity var(--duration-base) ease, transform var(--duration-base) ease;
-  }
-
-  .project:hover .hud-date {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  .body {
-    padding: var(--space-3);
+    color: var(--color-label);
   }
 
   h2 {
@@ -133,11 +106,5 @@ const projects = (await getCollection('projects')).sort(
     margin: 0;
     color: var(--color-text-muted);
     font-size: 0.9rem;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .project:hover {
-      transform: none;
-    }
   }
 </style>

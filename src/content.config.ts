@@ -16,6 +16,12 @@ const projects = defineCollection({
     title: z.string(),
     date: z.date(),
     description: z.string(),
+    stack: z.string().default('TBD'),
+    status: z.string().default('In progress'),
+    role: z.string().default('Solo'),
+    started: z.string().default('TBD'),
+    processNote: z.string().optional(),
+    aside: z.string().optional(),
   }),
 });
 

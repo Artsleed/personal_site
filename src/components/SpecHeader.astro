@@ -1,0 +1,52 @@
+---
+// A scannable 4-cell metadata strip for project write-ups — stack, status,
+// role, started — in mono spec-sheet labels. Lets a recruiter scanning
+// quickly get the facts before the editorial prose underneath.
+interface Props {
+  stack: string;
+  status: string;
+  role: string;
+  started: string;
+}
+
+const { stack, status, role, started } = Astro.props;
+---
+
+<div class="spec-header ticked">
+  <div class="cell">
+    <span class="spec-label">Stack</span>
+    <span class="spec-value">{stack}</span>
+  </div>
+  <div class="cell">
+    <span class="spec-label">Status</span>
+    <span class="spec-value">{status}</span>
+  </div>
+  <div class="cell">
+    <span class="spec-label">Role</span>
+    <span class="spec-value">{role}</span>
+  </div>
+  <div class="cell">
+    <span class="spec-label">Started</span>
+    <span class="spec-value">{started}</span>
+  </div>
+</div>
+
+<style>
+  .spec-header {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-3);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: var(--space-2) var(--space-3);
+  }
+
+  @media (max-width: 560px) {
+    .spec-header {
+      grid-template-columns: repeat(2, 1fr);
+      row-gap: var(--space-2);
+    }
+  }
+</style>

@@ -1,0 +1,74 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Not Found">
+  <div class="error-page">
+    <p class="kicker">Error</p>
+    <h1 class="aside-trigger">
+      404
+      <span class="aside">(this is the part where I pretend it's intentional design.)</span>
+    </h1>
+    <p class="dek">Whatever you were looking for isn't here — it moved, it never existed, or I broke something.</p>
+    <div class="cta-row">
+      <a href="/" class="btn primary">Back home</a>
+      <a href="/projects" class="btn">See projects</a>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .error-page {
+    max-width: 560px;
+    padding-top: var(--space-4);
+  }
+
+  h1 {
+    font-size: clamp(3.5rem, 12vw, 6rem);
+    line-height: 1;
+    margin: 0 0 var(--space-3) 0;
+  }
+
+  .dek {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-4) 0;
+  }
+
+  .cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 0.65rem 1.4rem;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    background: transparent;
+    color: var(--color-heading);
+    border: 1px solid var(--color-border-strong);
+    transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease, transform var(--duration-fast) ease;
+  }
+
+  .btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    transform: translateY(-2px);
+  }
+
+  .btn.primary {
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+    border-color: var(--color-accent);
+  }
+
+  .btn.primary:hover {
+    color: var(--color-accent-contrast);
+    opacity: 0.9;
+  }
+</style>

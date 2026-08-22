@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import TerminalWindow from '../components/TerminalWindow.astro';
+import Panel from '../components/Panel.astro';
 
 const title = 'Resume';
 ---
@@ -8,17 +8,17 @@ const title = 'Resume';
 <Layout title="Resume">
   <div class="resume" data-reveal>
     <p class="kicker">CV</p>
-    <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
+    <h1 class="page-title">{title}</h1>
     <div class="full-bleed viewer-breakout">
       <div class="viewer">
-        <TerminalWindow filename="Nathaniel_Felsky_Deelstra_resume.pdf">
+        <Panel>
           <iframe
             class="resume-frame"
             src="/Nathaniel_Felsky_Deelstra_resume.pdf"
             width="100%"
             height="900px"
           />
-        </TerminalWindow>
+        </Panel>
       </div>
     </div>
   </div>
@@ -38,5 +38,6 @@ const title = 'Resume';
   .resume-frame {
     display: block;
     border: none;
+    border-radius: var(--radius);
   }
 </style>

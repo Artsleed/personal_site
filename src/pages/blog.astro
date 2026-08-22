@@ -7,25 +7,19 @@ const title = 'Blog';
 const posts = (await getCollection('blog')).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
 );
-
 ---
 
 <Layout title="Blog">
   <div class="blog">
     <p class="kicker">Writing</p>
-    <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
+    <h1 class="page-title">{title}</h1>
     <div class="full-bleed list-breakout">
       <div class="post-list">
         {posts.map((post, i) => (
-          <a href={`/blog/${post.id}`} class="post" data-reveal style={`transition-delay: ${i * 0.08}s`}>
-            <div class="titlebar">
-              <span class="filename">{post.id}.md</span>
-              <span class="date-badge">{post.data.date.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-            </div>
-            <div class="body">
-              <h2>{post.data.title}</h2>
-              <p>{post.data.description}</p>
-            </div>
+          <a href={`/blog/${post.id}`} class="post" data-reveal style={`transition-delay: ${i * 0.06}s`}>
+            <span class="date-badge">{post.data.date.toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+            <h2>{post.data.title}</h2>
+            <p>{post.data.description}</p>
           </a>
         ))}
       </div>
@@ -45,8 +39,8 @@ const posts = (await getCollection('blog')).sort(
   .post-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2);
     padding: 0 var(--space-5);
+    max-width: var(--content-width);
   }
 
   @media (max-width: 480px) {
@@ -58,68 +52,41 @@ const posts = (await getCollection('blog')).sort(
   .post {
     display: block;
     text-decoration: none;
-    color: var(--color-text);
-    background: var(--color-surface);
-    border: 1px solid var(--color-chrome-border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    transition: border-color var(--duration-fast) ease, transform var(--duration-fast) ease, box-shadow var(--duration-fast) ease;
+    color: var(--color-heading);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--color-border);
+    transition: padding-left var(--duration-fast) ease;
+  }
+
+  .post:first-child {
+    padding-top: 0;
   }
 
   .post:hover {
-    border-color: var(--color-accent);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px -12px color-mix(in srgb, var(--color-accent) 40%, transparent);
+    padding-left: 0.4rem;
   }
 
   .post:hover h2 {
     color: var(--color-accent);
   }
 
-  .titlebar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2);
-    padding: 0.5rem var(--space-2);
-    background: var(--color-chrome);
-    border-bottom: 1px solid var(--color-chrome-border);
-  }
-
-  .filename {
-    font-size: 0.78rem;
-    color: var(--color-text-faint);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .body {
-    padding: 0.9rem var(--space-3);
-  }
-
   h2 {
-    font-size: 1.1rem;
-    margin: 0 0 0.35rem 0;
+    font-size: 1.35rem;
+    font-weight: 500;
+    margin: 0.4rem 0 0.4rem 0;
     transition: color var(--duration-fast) ease;
   }
 
   p {
     margin: 0;
     color: var(--color-text-muted);
-    font-size: 0.9rem;
-    max-width: 70ch;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 0.92rem;
+    max-width: 68ch;
   }
 
   @media (prefers-reduced-motion: reduce) {
     .post:hover {
-      transform: none;
+      padding-left: 0;
     }
   }
 </style>

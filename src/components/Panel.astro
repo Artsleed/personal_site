@@ -1,0 +1,27 @@
+---
+// A bordered, corner-ticked container — the "considered object" device
+// used across the site in place of the old terminal-window chrome.
+// Pass `tilt` to add the hover-lean interaction (best for clickable cards,
+// skip it for large panels of body copy where a tilt would feel odd).
+interface Props {
+  tilt?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { tilt = false, class: className, ...rest } = Astro.props;
+---
+
+<div class:list={['panel', 'ticked', { tilt }, className]} {...rest}>
+  <slot />
+</div>
+
+<style>
+  .panel {
+    position: relative;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    padding: var(--space-3);
+  }
+</style>

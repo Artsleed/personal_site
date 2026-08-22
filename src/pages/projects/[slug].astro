@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import TerminalWindow from '../../components/TerminalWindow.astro';
+import SpecHeader from '../../components/SpecHeader.astro';
 import { getCollection, render } from 'astro:content';
 
 export async function getStaticPaths() {
@@ -18,14 +18,34 @@ const { Content } = await render(project);
 <Layout title={project.data.title}>
   <article class="project">
     <a href="/projects" class="back-link">&larr; Projects</a>
-    <h1 class="typewriter" style={`--steps: ${project.data.title.length}`}>{project.data.title}</h1>
+    <h1 class="aside-trigger">
+      {project.data.title}
+      {project.data.aside && <span class="aside title-aside">{project.data.aside}</span>}
+    </h1>
     <p class="description">{project.data.description}</p>
-    <div class="full-bleed window-breakout">
-      <TerminalWindow filename={`${project.id}.md`} class="window" data-reveal>
-        <div class="content">
-          <Content />
+
+    <div class="full-bleed spec-breakout">
+      <SpecHeader
+        stack={project.data.stack}
+        status={project.data.status}
+        role={project.data.role}
+        started={project.data.started}
+      />
+    </div>
+
+    {project.data.processNote && (
+      <div class="full-bleed note-breakout">
+        <div class="process-note">
+          <span class="spec-label">Process note</span>
+          <p>{project.data.processNote}</p>
         </div>
-      </TerminalWindow>
+      </div>
+    )}
+
+    <div class="full-bleed content-breakout">
+      <div class="content" data-reveal>
+        <Content />
+      </div>
     </div>
   </article>
 </Layout>
@@ -36,27 +56,56 @@ const { Content } = await render(project);
   }
 
   h1 {
-    font-size: clamp(1.3rem, 5.5vw, 2rem);
-    margin-bottom: var(--space-1);
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+    margin: 0 0 var(--space-1) 0;
+  }
+
+  .title-aside {
+    display: block;
+    font-size: 1.1rem;
+    margin-top: 0.2rem;
   }
 
   .description {
-    color: var(--color-text-faint);
+    color: var(--color-text-muted);
     margin-bottom: var(--space-3);
   }
 
-  .window-breakout {
+  .spec-breakout,
+  .note-breakout,
+  .content-breakout {
     padding: 0 var(--space-5);
   }
 
+  .note-breakout {
+    margin-top: var(--space-3);
+  }
+
+  .content-breakout {
+    margin-top: var(--space-4);
+  }
+
   @media (max-width: 480px) {
-    .window-breakout {
+    .spec-breakout,
+    .note-breakout,
+    .content-breakout {
       padding: 0 var(--space-3);
     }
   }
 
+  .process-note {
+    border-left: 2px solid var(--color-accent);
+    padding: 0.25rem var(--space-3);
+    background: color-mix(in srgb, var(--color-accent) 5%, transparent);
+  }
+
+  .process-note p {
+    margin: 0.35rem 0 0 0;
+    color: var(--color-text-muted);
+  }
+
   .content {
     line-height: 1.8;
-    color: var(--color-text);
+    color: var(--color-body);
   }
 </style>

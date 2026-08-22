@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import TerminalWindow from '../components/TerminalWindow.astro';
+import Panel from '../components/Panel.astro';
 
 const title = 'About';
 
@@ -8,14 +8,17 @@ const sections = [
   {
     heading: 'Background',
     body: "Hello! My name is Nathaniel, and I'm a Computer Engineering student at Queen's University. I'm originally from Brantford, Ontario where my love of videogames and technology led me to explore the interactions between hardware and software. Being able to take any problem, break it down and then solve it is one of my favorite feelings in the world.",
+    aside: "(Brantford's other claim to fame is Alexander Graham Bell — I peaked early.)",
   },
   {
     heading: 'Engineering',
     body: "I'm most passionate about projects that solve real issues and every now and then I like to throw in a random project just for fun. Im most interested in ML, CV, Quantum compute, and embedded systems.",
+    aside: "(a suspicious number of my CV projects are just an excuse to point a camera at my cats.)",
   },
   {
     heading: 'Outside Engineering',
     body: 'Outside of Engineering I love riding my bike, rock climbing, watching movies, reading, playing videogames, and hanging out with my cats.',
+    aside: "(the cats supervise all of it, closely and without qualifications.)",
   },
 ];
 
@@ -27,102 +30,55 @@ const interests = [
   { id: 'reading', label: 'Reading', fact: "Mostly sci-fi and fantasy with some books about science and improvement." },
   { id: 'cats', label: 'Cats', fact: "I have two black cats named Coal, and Remi who are very fuzzy." },
 ];
+
+const icons: Record<string, string> = {
+  climbing: '<path d="M3 20l6-11 4 6 2-3 6 8H3z" />',
+  biking: '<circle cx="6" cy="17" r="3.5" /><circle cx="18" cy="17" r="3.5" /><path d="M6 17l4-8h4l4 8M10 9h4M13 5h3l2 4" />',
+  gaming: '<rect x="3" y="8" width="18" height="9" rx="4" /><path d="M8 12h-2m1-1v2M15 12h.01M18 10h.01" />',
+  movies: '<rect x="3" y="7" width="18" height="13" rx="1.5" /><path d="M3 11h18M6 7l2-4h3l-2 4M13 7l2-4h3l-2 4" />',
+  reading: '<path d="M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5v14z" /><path d="M4 19.5A2.5 2.5 0 006.5 22H20" />',
+  cats: '<circle cx="7" cy="9" r="1.7" /><circle cx="12" cy="6.5" r="1.7" /><circle cx="17" cy="9" r="1.7" /><path d="M8 14c0-2.5 2-4 4-4s4 1.5 4 4-2 4-4 4-4-1.5-4-4z" />',
+};
 ---
 
 <Layout title="About">
   <div class="about">
     <p class="kicker">Who I Am</p>
-    <h1 class="page-title typewriter" style={`--steps: ${title.length}`}>{title}</h1>
+    <h1 class="page-title">{title}</h1>
 
     <div class="content-row full-bleed">
-      <TerminalWindow filename="about.md" class="bio" data-reveal>
+      <Panel class="bio" data-reveal>
         {sections.map((section) => (
-          <section>
+          <section class="aside-trigger">
             <h2 class="section-heading">{section.heading}</h2>
             <p>{section.body}</p>
+            <p class="aside">{section.aside}</p>
           </section>
         ))}
-      </TerminalWindow>
+      </Panel>
 
-      <TerminalWindow filename="portrait.jpg" class="portrait" data-reveal style="transition-delay: 0.1s">
+      <Panel class="portrait" data-reveal style="transition-delay: 0.1s">
         <div class="portrait-placeholder">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <circle cx="12" cy="8" r="4" />
             <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7" />
           </svg>
-          <span>// awaiting photo</span>
+          <span class="spec-label">awaiting photo</span>
         </div>
-      </TerminalWindow>
+      </Panel>
     </div>
 
-    <div class="interest-row" data-reveal style="transition-delay: 0.2s">
-      <div class="interest-item">
-        <button type="button" class="interest-icon" aria-label={interests[0].label}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-            <path d="M3 20l6-11 4 6 2-3 6 8H3z" />
-          </svg>
-          <span>{interests[0].label}</span>
-        </button>
-        <div class="interest-tooltip" role="tooltip">{interests[0].fact}</div>
-      </div>
-
-      <div class="interest-item">
-        <button type="button" class="interest-icon" aria-label={interests[1].label}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-            <circle cx="6" cy="17" r="3.5" />
-            <circle cx="18" cy="17" r="3.5" />
-            <path d="M6 17l4-8h4l4 8M10 9h4M13 5h3l2 4" />
-          </svg>
-          <span>{interests[1].label}</span>
-        </button>
-        <div class="interest-tooltip" role="tooltip">{interests[1].fact}</div>
-      </div>
-
-      <div class="interest-item">
-        <button type="button" class="interest-icon" aria-label={interests[2].label}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-            <rect x="3" y="8" width="18" height="9" rx="4" />
-            <path d="M8 12h-2m1-1v2M15 12h.01M18 10h.01" />
-          </svg>
-          <span>{interests[2].label}</span>
-        </button>
-        <div class="interest-tooltip" role="tooltip">{interests[2].fact}</div>
-      </div>
-
-      <div class="interest-item">
-        <button type="button" class="interest-icon" aria-label={interests[3].label}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-            <rect x="3" y="7" width="18" height="13" rx="1.5" />
-            <path d="M3 11h18M6 7l2-4h3l-2 4M13 7l2-4h3l-2 4" />
-          </svg>
-          <span>{interests[3].label}</span>
-        </button>
-        <div class="interest-tooltip" role="tooltip">{interests[3].fact}</div>
-      </div>
-
-      <div class="interest-item">
-        <button type="button" class="interest-icon" aria-label={interests[4].label}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-            <path d="M4 19.5A2.5 2.5 0 016.5 17H20V3H6.5A2.5 2.5 0 004 5.5v14z" />
-            <path d="M4 19.5A2.5 2.5 0 006.5 22H20" />
-          </svg>
-          <span>{interests[4].label}</span>
-        </button>
-        <div class="interest-tooltip" role="tooltip">{interests[4].fact}</div>
-      </div>
-
-      <div class="interest-item">
-        <button type="button" class="interest-icon" aria-label={interests[5].label}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
-            <circle cx="7" cy="9" r="1.7" />
-            <circle cx="12" cy="6.5" r="1.7" />
-            <circle cx="17" cy="9" r="1.7" />
-            <path d="M8 14c0-2.5 2-4 4-4s4 1.5 4 4-2 4-4 4-4-1.5-4-4z" />
-          </svg>
-          <span>{interests[5].label}</span>
-        </button>
-        <div class="interest-tooltip" role="tooltip">{interests[5].fact}</div>
-      </div>
+    <h2 class="section-heading interests-heading" data-reveal style="transition-delay: 0.2s">Outside of work</h2>
+    <div class="interest-row" data-reveal style="transition-delay: 0.24s">
+      {interests.map((interest) => (
+        <div class="interest-item aside-trigger">
+          <button type="button" class="interest-icon" aria-label={interest.label}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" set:html={icons[interest.id]} />
+            <span>{interest.label}</span>
+          </button>
+          <p class="aside interest-aside">{interest.fact}</p>
+        </div>
+      ))}
     </div>
   </div>
 </Layout>
@@ -148,57 +104,64 @@ const interests = [
 
   .portrait {
     flex-shrink: 0;
-    width: 140px;
+    width: 160px;
+    display: flex;
   }
 
   .portrait-placeholder {
     aspect-ratio: 1;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
-    color: var(--color-text-faint);
-    background: color-mix(in srgb, var(--color-text-faint) 6%, transparent);
-    border: 1px dashed var(--color-chrome-border);
+    gap: 0.5rem;
+    color: var(--color-label);
+    background: color-mix(in srgb, var(--color-label) 6%, transparent);
+    border: 1px dashed var(--color-border-strong);
     border-radius: var(--radius);
   }
 
   .portrait-placeholder svg {
-    width: 32%;
-    height: 32%;
-  }
-
-  .portrait-placeholder span {
-    font-size: 0.65rem;
-    text-align: center;
+    width: 30%;
+    height: 30%;
   }
 
   .bio {
     flex: 1 1 400px;
   }
 
-  section:not(:first-child) {
+  .bio :global(section):not(:first-child) {
     margin-top: var(--space-3);
   }
 
-  section:first-child .section-heading {
+  .bio :global(section:first-child) :global(.section-heading) {
     margin-top: 0;
   }
 
-  p {
+  .bio p {
     color: var(--color-text-muted);
+  }
+
+  .aside {
+    margin: 0.5rem 0 0 0;
+  }
+
+  .interests-heading {
+    margin-top: var(--space-5);
   }
 
   .interest-row {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-top: var(--space-4);
+    gap: var(--space-3);
   }
 
   .interest-item {
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100px;
   }
 
   .interest-icon {
@@ -206,14 +169,14 @@ const interests = [
     flex-direction: column;
     align-items: center;
     gap: 0.4rem;
-    width: 84px;
+    width: 100%;
     padding: 0.75rem 0.5rem;
     background: transparent;
     color: var(--color-text-muted);
     border: none;
     border-radius: var(--radius);
-    font-family: inherit;
-    font-size: 0.75rem;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
     cursor: pointer;
     transition: color var(--duration-fast) ease;
   }
@@ -223,43 +186,14 @@ const interests = [
     height: 22px;
   }
 
-  .interest-icon:hover,
+  .interest-item:hover .interest-icon,
   .interest-icon:focus-visible {
     color: var(--color-accent);
     outline: none;
   }
 
-  .interest-tooltip {
-    position: absolute;
-    top: calc(100% + 0.4rem);
-    left: 50%;
-    transform: translateX(-50%);
-    width: max-content;
-    max-width: 160px;
-    padding: 0.55rem 0.75rem;
-    background: var(--color-surface);
-    border: 1px solid var(--color-chrome-border);
-    border-radius: var(--radius);
-    color: var(--color-text-muted);
-    font-size: 0.8rem;
-    line-height: 1.5;
+  .interest-aside {
     text-align: center;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: opacity var(--duration-fast) ease;
-    z-index: 5;
-  }
-
-  .interest-icon:hover + .interest-tooltip,
-  .interest-icon:focus-visible + .interest-tooltip {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .interest-tooltip {
-      transition: none;
-    }
+    font-size: 0.85rem;
   }
 </style>
