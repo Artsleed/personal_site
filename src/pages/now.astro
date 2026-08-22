@@ -1,9 +1,9 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import RecordPlayer from '../components/RecordPlayer.astro';
-import TVSet from '../components/TVSet.astro';
+import DeskScene from '../components/DeskScene.astro';
 
 const title = 'Now';
+const workingOn = ['Magic Mirror', 'School prep'];
 ---
 
 <Layout title="Now">
@@ -11,181 +11,25 @@ const title = 'Now';
     <p class="kicker">Today</p>
     <h1 class="page-title">{title}</h1>
 
-    <div class="full-bleed objects-breakout">
-      <div class="objects-row" data-reveal>
-        <RecordPlayer />
-        <TVSet />
-      </div>
+    <div class="full-bleed scene-breakout">
+      <DeskScene workingOn={workingOn} />
     </div>
-
-    <h2 class="section-heading">What I'm Working On</h2>
-    <ul class="working-on" data-reveal style="transition-delay: 0.1s">
-      <li>Magic Mirror</li>
-      <li>School prep</li>
-    </ul>
   </div>
 </Layout>
-
-<script>
-  interface Track {
-    isPlaying: boolean;
-    title: string;
-    artist: string;
-    album: string;
-    albumArt: string | null;
-    songUrl: string;
-  }
-
-  interface Film {
-    title: string;
-    link: string;
-    thumb: string | null;
-  }
-
-  async function fetchNowPlaying() {
-    const disc = document.getElementById('record-disc');
-    const tonearm = document.getElementById('record-tonearm');
-    const status = document.getElementById('record-status');
-    const label = document.getElementById('record-label') as HTMLImageElement | null;
-    const link = document.getElementById('record-link') as HTMLAnchorElement | null;
-    const titleEl = document.getElementById('record-title');
-    const artistEl = document.getElementById('record-artist');
-    if (!disc || !tonearm || !status || !label || !link || !titleEl || !artistEl) return;
-
-    try {
-      const res = await fetch('/api/now-playing');
-      const data: Partial<Track> & { error?: string } = await res.json();
-
-      if (!res.ok || data.error || !data.title) {
-        disc.classList.remove('is-playing');
-        tonearm.classList.remove('is-playing');
-        status.textContent = 'Nothing played recently';
-        titleEl.textContent = '';
-        artistEl.textContent = '';
-        link.removeAttribute('href');
-        return;
-      }
-
-      disc.classList.toggle('is-playing', Boolean(data.isPlaying));
-      tonearm.classList.toggle('is-playing', Boolean(data.isPlaying));
-      status.textContent = data.isPlaying ? 'Now playing' : 'Last played';
-      label.src = data.albumArt ?? '';
-      label.alt = data.album ?? '';
-      titleEl.textContent = data.title ?? '';
-      artistEl.textContent = data.artist ?? '';
-      if (data.songUrl) link.href = data.songUrl;
-    } catch {
-      disc.classList.remove('is-playing');
-      tonearm.classList.remove('is-playing');
-      status.textContent = 'Could not load Spotify status';
-    }
-  }
-
-  let films: Film[] = [];
-  let filmIndex = 0;
-
-  function renderFilm() {
-    const poster = document.getElementById('tv-poster') as HTMLImageElement | null;
-    const channel = document.getElementById('tv-channel');
-    const titleLink = document.getElementById('tv-title') as HTMLAnchorElement | null;
-    if (!poster || !channel || !titleLink || films.length === 0) return;
-
-    const film = films[filmIndex];
-    channel.textContent = `CH ${String(filmIndex + 1).padStart(2, '0')}`;
-    titleLink.textContent = film.title;
-    titleLink.href = film.link;
-
-    poster.classList.add('is-switching');
-    window.setTimeout(() => {
-      poster.src = film.thumb ?? '';
-      poster.alt = film.title;
-      poster.classList.remove('is-switching');
-    }, 120);
-  }
-
-  function stepFilm(delta: number) {
-    if (films.length === 0) return;
-    filmIndex = (filmIndex + delta + films.length) % films.length;
-    renderFilm();
-  }
-
-  async function fetchLetterboxd() {
-    const titleLink = document.getElementById('tv-title') as HTMLAnchorElement | null;
-    if (!titleLink) return;
-
-    try {
-      const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://letterboxd.com/Artsleed/rss/');
-      const data = await res.json();
-      const items = data.items.slice(0, 5);
-
-      films = items.map((item: { title: string; link: string; description: string }) => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(item.description, 'text/html');
-        const img = doc.querySelector('img');
-        return { title: item.title, link: item.link, thumb: img ? img.src : null };
-      });
-
-      filmIndex = 0;
-      if (films.length > 0) {
-        renderFilm();
-      } else {
-        titleLink.textContent = 'No films yet';
-      }
-    } catch {
-      titleLink.textContent = 'Could not load films';
-    }
-  }
-
-  let nowPlayingInterval: ReturnType<typeof setInterval>;
-
-  function init() {
-    fetchNowPlaying();
-    fetchLetterboxd();
-    clearInterval(nowPlayingInterval);
-    nowPlayingInterval = setInterval(fetchNowPlaying, 30000);
-
-    document.getElementById('tv-prev')?.addEventListener('click', () => stepFilm(-1));
-    document.getElementById('tv-next')?.addEventListener('click', () => stepFilm(1));
-  }
-
-  document.addEventListener('astro:page-load', init);
-</script>
 
 <style>
   .now {
     max-width: var(--page-width);
   }
 
-  .objects-breakout {
+  .scene-breakout {
     padding: 0 var(--space-5);
     margin-top: var(--space-1);
   }
 
   @media (max-width: 480px) {
-    .objects-breakout {
+    .scene-breakout {
       padding: 0 var(--space-3);
     }
-  }
-
-  .objects-row {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-3);
-    align-items: stretch;
-  }
-
-  @media (max-width: 640px) {
-    .objects-row {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .working-on {
-    color: var(--color-text-muted);
-    line-height: 1.8;
-  }
-
-  .working-on li::marker {
-    color: var(--color-accent);
   }
 </style>
