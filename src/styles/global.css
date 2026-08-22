@@ -51,14 +51,6 @@
   --duration-fast: 0.15s;
   --duration-base: 0.3s;
   --duration-slow: 0.6s;
-
-  /* legacy aliases — now.astro + TerminalWindow.astro still use the old
-     terminal-chrome token names and are intentionally left unconverted
-     (Now page is getting its own redesign separately); remove these once
-     that page moves off TerminalWindow. */
-  --color-chrome: var(--color-surface);
-  --color-chrome-border: var(--color-border-strong);
-  --color-text-faint: var(--color-label);
 }
 
 *,
