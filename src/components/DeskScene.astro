@@ -12,7 +12,7 @@ interface Props {
 const { workingOn } = Astro.props;
 ---
 
-<div class="desk-scene ticked" id="desk-scene" data-working-on={JSON.stringify(workingOn)}>
+<div class="desk-scene" id="desk-scene" data-working-on={JSON.stringify(workingOn)}>
   <div class="canvas-wrap" id="desk-canvas-wrap">
     <canvas id="desk-canvas"></canvas>
   </div>
@@ -151,9 +151,19 @@ const { workingOn } = Astro.props;
     const scene = new THREE.Scene();
     scene.background = bg;
 
-    const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
-    camera.position.set(0, 3.3, 5.6);
-    camera.lookAt(0, 0.25, 0);
+    const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+
+    // The desk/TV/record spread was tuned to look right at a ~1.5 (roughly
+    // laptop-hero) aspect ratio. On a narrower viewport (portrait phones
+    // especially), a *fixed* camera position leaves the TV outside the
+    // frame entirely - the horizontal FOV shrinks with aspect while the
+    // world-space object positions don't. Fix: dolly the camera back along
+    // its own viewing direction as aspect narrows, so the same horizontal
+    // extent of the desk stays in frame; wide screens keep the tuned
+    // distance untouched.
+    const lookTarget = new THREE.Vector3(0, 0.15, 0);
+    const baseDir = new THREE.Vector3(0, 2.5, 4.7).sub(lookTarget);
+    const baseAspect = 1.5;
 
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
     renderer.shadowMap.enabled = true;
@@ -164,7 +174,11 @@ const { workingOn } = Astro.props;
       const h = wrap.clientHeight;
       renderer.setSize(w, h, false);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      camera.aspect = w / h;
+      const aspect = w / h;
+      camera.aspect = aspect;
+      const scale = aspect < baseAspect ? baseAspect / aspect : 1;
+      camera.position.copy(lookTarget).addScaledVector(baseDir, scale);
+      camera.lookAt(lookTarget);
       camera.updateProjectionMatrix();
     }
 
@@ -186,27 +200,97 @@ const { workingOn } = Astro.props;
     scene.add(warmGlow);
 
     // desk
+    function makeWoodTexture() {
+      const c = document.createElement('canvas');
+      c.width = 512;
+      c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#241a12';
+      ctx.fillRect(0, 0, c.width, c.height);
+      for (let i = 0; i < 44; i++) {
+        const y = Math.random() * c.height;
+        ctx.strokeStyle = `rgba(10, 6, 3, ${0.15 + Math.random() * 0.18})`;
+        ctx.lineWidth = 0.6 + Math.random() * 1.8;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.bezierCurveTo(
+          c.width * 0.33, y + (Math.random() * 10 - 5),
+          c.width * 0.66, y + (Math.random() * 10 - 5),
+          c.width, y + (Math.random() * 6 - 3)
+        );
+        ctx.stroke();
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(3, 2);
+      return tex;
+    }
+
+    function makeWallTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256;
+      c.height = 256;
+      const ctx = c.getContext('2d');
+      const g = ctx.createLinearGradient(0, 0, 0, c.height);
+      g.addColorStop(0, '#1a1815');
+      g.addColorStop(1, '#100f0d');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.fillStyle = 'rgba(255,255,255,0.02)';
+      for (let i = 0; i < 300; i++) {
+        ctx.fillRect(Math.random() * c.width, Math.random() * c.height, 1, 1);
+      }
+      return new THREE.CanvasTexture(c);
+    }
+
+    const wall = new THREE.Mesh(
+      new THREE.PlaneGeometry(30, 8),
+      new THREE.MeshStandardMaterial({ map: makeWallTexture(), roughness: 0.95 })
+    );
+    wall.position.set(0, 3.5, -1.6);
+    wall.receiveShadow = true;
+    scene.add(wall);
+
+    const deskWidth = 6.6;
+    const deskDepth = 3;
+    const deskSideMat = new THREE.MeshStandardMaterial({ color: 0x1a120b, roughness: 0.9 });
     const desk = new THREE.Mesh(
-      new THREE.BoxGeometry(6, 0.25, 3),
-      new THREE.MeshStandardMaterial({ color: 0x241a12, roughness: 0.85 })
+      new THREE.BoxGeometry(deskWidth, 0.25, deskDepth),
+      [
+        deskSideMat,
+        deskSideMat,
+        new THREE.MeshStandardMaterial({ map: makeWoodTexture(), roughness: 0.75 }),
+        deskSideMat,
+        deskSideMat,
+        deskSideMat,
+      ]
     );
     desk.position.y = -0.125;
     desk.receiveShadow = true;
     scene.add(desk);
     const deskTop = 0;
 
+    const deskEdge = new THREE.Mesh(
+      new THREE.BoxGeometry(deskWidth + 0.02, 0.04, 0.05),
+      new THREE.MeshStandardMaterial({ color: 0x120c07, roughness: 0.6 })
+    );
+    deskEdge.position.set(0, -0.03, deskDepth / 2);
+    scene.add(deskEdge);
+
     // --- TV ---
     const tvGroup = new THREE.Group();
-    tvGroup.position.set(-1.65, deskTop, -0.3);
+    tvGroup.position.set(-1.85, deskTop, -0.3);
 
-    const tvStand = new THREE.Mesh(
-      new THREE.BoxGeometry(0.5, 0.14, 0.32),
-      new THREE.MeshStandardMaterial({ color: 0x1c1b19, roughness: 0.7 })
-    );
-    tvStand.position.y = 0.07;
-    tvStand.castShadow = true;
-    tvStand.receiveShadow = true;
-    tvGroup.add(tvStand);
+    const footGeo = new THREE.BoxGeometry(0.1, 0.14, 0.1);
+    const footMat = new THREE.MeshStandardMaterial({ color: 0x1c1b19, roughness: 0.7 });
+    const footL = new THREE.Mesh(footGeo, footMat);
+    footL.position.set(-0.55, 0.07, 0.05);
+    footL.castShadow = true;
+    footL.receiveShadow = true;
+    const footR = footL.clone();
+    footR.position.x = 0.55;
+    tvGroup.add(footL, footR);
 
     const tvBezel = new THREE.Mesh(
       new THREE.BoxGeometry(1.5, 1.0, 0.12),
@@ -218,6 +302,13 @@ const { workingOn } = Astro.props;
     tvBezel.receiveShadow = true;
     tvGroup.add(tvBezel);
 
+    const powerLight = new THREE.Mesh(
+      new THREE.SphereGeometry(0.012, 8, 8),
+      new THREE.MeshBasicMaterial({ color: accent })
+    );
+    powerLight.position.set(0.68, -0.44, 0.062);
+    tvBezel.add(powerLight);
+
     const screenCanvas = document.createElement('canvas');
     screenCanvas.width = 512;
     screenCanvas.height = 342;
@@ -225,8 +316,13 @@ const { workingOn } = Astro.props;
     const screenTexture = new THREE.CanvasTexture(screenCanvas);
     function paintScreen(color) {
       if (!screenCtx) return;
+      const cw = screenCanvas.width;
+      const ch = screenCanvas.height;
       screenCtx.fillStyle = color;
-      screenCtx.fillRect(0, 0, screenCanvas.width, screenCanvas.height);
+      screenCtx.fillRect(0, 0, cw, ch);
+      screenCtx.strokeStyle = 'rgba(0,0,0,0.5)';
+      screenCtx.lineWidth = 10;
+      screenCtx.strokeRect(0, 0, cw, ch);
       screenTexture.needsUpdate = true;
     }
     paintScreen('#0c0b0a');
@@ -257,6 +353,9 @@ const { workingOn } = Astro.props;
         screenCtx.fillStyle = '#0c0b0a';
         screenCtx.fillRect(0, 0, cw, ch);
         screenCtx.drawImage(img, (cw - w) / 2, (ch - h) / 2, w, h);
+        screenCtx.strokeStyle = 'rgba(0,0,0,0.5)';
+        screenCtx.lineWidth = 10;
+        screenCtx.strokeRect(0, 0, cw, ch);
         screenTexture.needsUpdate = true;
       };
       img.onerror = () => paintScreen('#0c0b0a');
@@ -265,7 +364,7 @@ const { workingOn } = Astro.props;
 
     // --- record player ---
     const rpGroup = new THREE.Group();
-    rpGroup.position.set(1.55, deskTop, 0.15);
+    rpGroup.position.set(1.8, deskTop, 0.15);
 
     const plinth = new THREE.Mesh(
       new THREE.BoxGeometry(1.7, 0.12, 1.4),
@@ -276,6 +375,20 @@ const { workingOn } = Astro.props;
     plinth.receiveShadow = true;
     rpGroup.add(plinth);
 
+    const knobMat = new THREE.MeshStandardMaterial({ color: 0x2a2622, roughness: 0.5 });
+    const startButton = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.02, 16), knobMat);
+    startButton.position.set(0.55, 0.13, 0.55);
+    const powerButton = startButton.clone();
+    powerButton.material = new THREE.MeshStandardMaterial({ color: 0x2a2622, roughness: 0.5 });
+    powerButton.position.x = 0.68;
+    rpGroup.add(startButton, powerButton);
+    const powerButtonLight = new THREE.Mesh(
+      new THREE.SphereGeometry(0.008, 8, 8),
+      new THREE.MeshBasicMaterial({ color: accent })
+    );
+    powerButtonLight.position.set(0.68, 0.145, 0.55);
+    rpGroup.add(powerButtonLight);
+
     const platter = new THREE.Mesh(
       new THREE.CylinderGeometry(0.72, 0.72, 0.04, 48),
       new THREE.MeshStandardMaterial({ color: 0x100e0c, roughness: 0.5 })
@@ -283,6 +396,21 @@ const { workingOn } = Astro.props;
     platter.position.y = 0.14;
     platter.castShadow = true;
     rpGroup.add(platter);
+
+    const platterRim = new THREE.Mesh(
+      new THREE.TorusGeometry(0.715, 0.01, 8, 48),
+      new THREE.MeshStandardMaterial({ color: 0x3a352c, roughness: 0.35, metalness: 0.5 })
+    );
+    platterRim.rotation.x = Math.PI / 2;
+    platterRim.position.y = 0.161;
+    rpGroup.add(platterRim);
+
+    const feltMat = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.685, 0.685, 0.006, 48),
+      new THREE.MeshStandardMaterial({ color: 0x1f2320, roughness: 0.95 })
+    );
+    feltMat.position.y = 0.163;
+    rpGroup.add(feltMat);
 
     const recordCanvas = document.createElement('canvas');
     recordCanvas.width = 512;
@@ -334,7 +462,7 @@ const { workingOn } = Astro.props;
         new THREE.MeshStandardMaterial({ color: 0x0c0b0a }),
       ]
     );
-    record.position.y = 0.16 + 0.006;
+    record.position.y = 0.166 + 0.006;
     record.castShadow = true;
     rpGroup.add(record);
 
@@ -351,20 +479,45 @@ const { workingOn } = Astro.props;
     }
 
     const tonearmPivot = new THREE.Group();
-    tonearmPivot.position.set(0.55, 0.22, -0.5);
+    tonearmPivot.position.set(0.55, 0.23, -0.5);
+
+    const pivotBase = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.05, 0.055, 0.05, 16),
+      knobMat
+    );
+    tonearmPivot.add(pivotBase);
+
+    const counterweight = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.045, 0.045, 0.07, 16),
+      new THREE.MeshStandardMaterial({ color: 0x2a2622, roughness: 0.4, metalness: 0.4 })
+    );
+    counterweight.rotation.x = Math.PI / 2;
+    counterweight.position.z = -0.1;
+    tonearmPivot.add(counterweight);
+
     const tonearm = new THREE.Mesh(
-      new THREE.BoxGeometry(0.05, 0.03, 0.85),
+      new THREE.BoxGeometry(0.045, 0.025, 0.85),
       new THREE.MeshStandardMaterial({ color: 0x96938a, roughness: 0.4, metalness: 0.3 })
     );
     tonearm.position.z = 0.425;
     tonearm.castShadow = true;
     tonearmPivot.add(tonearm);
-    const tonearmTip = new THREE.Mesh(
-      new THREE.SphereGeometry(0.035, 12, 12),
+
+    const headshell = new THREE.Mesh(
+      new THREE.BoxGeometry(0.08, 0.045, 0.13),
+      new THREE.MeshStandardMaterial({ color: 0x2a2622, roughness: 0.5 })
+    );
+    headshell.position.z = 0.86;
+    headshell.castShadow = true;
+    tonearm.add(headshell);
+
+    const stylus = new THREE.Mesh(
+      new THREE.SphereGeometry(0.014, 8, 8),
       new THREE.MeshStandardMaterial({ color: accent })
     );
-    tonearmTip.position.z = 0.85;
-    tonearm.add(tonearmTip);
+    stylus.position.set(0, -0.03, 0.06);
+    headshell.add(stylus);
+
     tonearmPivot.rotation.y = -0.55;
     rpGroup.add(tonearmPivot);
 
@@ -539,29 +692,31 @@ const { workingOn } = Astro.props;
 <style>
   .desk-scene {
     position: relative;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    padding: var(--space-3);
   }
 
   .canvas-wrap {
     width: 100%;
-    aspect-ratio: 16 / 9;
-    max-height: 480px;
+    height: min(78vh, 900px);
+    min-height: 420px;
   }
 
   #desk-canvas {
     display: block;
     width: 100%;
     height: 100%;
-    border-radius: var(--radius);
   }
 
   .fallback {
     display: none;
     flex-direction: column;
     gap: var(--space-2);
+    padding-inline: var(--space-5);
+  }
+
+  @media (max-width: 480px) {
+    .fallback {
+      padding-inline: var(--space-3);
+    }
   }
 
   .fallback:not([hidden]) {
@@ -599,10 +754,17 @@ const { workingOn } = Astro.props;
     align-items: center;
     justify-content: center;
     gap: var(--space-2);
+    padding-inline: var(--space-5);
   }
 
   .tv-controls:not([hidden]) {
     display: flex;
+  }
+
+  @media (max-width: 480px) {
+    .tv-controls {
+      padding-inline: var(--space-3);
+    }
   }
 
   .tv-btn,
