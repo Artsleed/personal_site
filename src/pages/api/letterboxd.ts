@@ -4,15 +4,24 @@ export const prerender = false;
 
 const RSS_URL = 'https://letterboxd.com/Artsleed/rss/';
 const FILM_COUNT = 5;
+// Only the first (currently-displayed) poster is worth blocking initial
+// page load for - it alone was ~70KB of the ~356KB this endpoint used to
+// return. The rest are fetched on demand from /api/poster as the user
+// actually cycles to them (see DeskScene.astro), which is the common case
+// of "never," not "always."
+const EAGER_COUNT = 1;
 
 interface Film {
   title: string;
   link: string;
-  // A data: URI, not the original CDN url - Letterboxd's poster CDN doesn't
-  // send CORS headers, which would otherwise taint the WebGL texture the
+  // A data: URI (eager films only) or null - Letterboxd's poster CDN sends
+  // no CORS headers, which would otherwise taint the WebGL texture the
   // desk scene paints it onto. Fetching and re-encoding it server-side
-  // sidesteps that entirely (data: URIs are always same-origin-safe).
+  // (here, or lazily via /api/poster) sidesteps that entirely.
   thumb: string | null;
+  // Original CDN url, present when `thumb` is null, so the client can
+  // request it lazily from /api/poster.
+  sourceUrl: string | null;
 }
 
 function extractTag(block: string, tag: string): string {
@@ -50,12 +59,15 @@ export const GET: APIRoute = async () => {
 
     const blocks = xml.split('<item>').slice(1, FILM_COUNT + 1);
     const films: Film[] = await Promise.all(
-      blocks.map(async (block) => {
+      blocks.map(async (block, i) => {
         const title = extractTag(block, 'title');
         const link = extractTag(block, 'link');
         const imageUrl = extractImageUrl(block);
-        const thumb = imageUrl ? await toDataUri(imageUrl) : null;
-        return { title, link, thumb };
+        if (i < EAGER_COUNT) {
+          const thumb = imageUrl ? await toDataUri(imageUrl) : null;
+          return { title, link, thumb, sourceUrl: null };
+        }
+        return { title, link, thumb: null, sourceUrl: imageUrl };
       })
     );
 

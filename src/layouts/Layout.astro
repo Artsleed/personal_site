@@ -4,9 +4,10 @@ import { ClientRouter } from 'astro:transitions';
 
 interface Props {
   title: string;
+  hideGrid?: boolean;
 }
 
-const { title } = Astro.props;
+const { title, hideGrid = false } = Astro.props;
 
 const navLinks = [
   { href: '/about', label: 'about' },
@@ -30,7 +31,7 @@ const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
     <title>{title} | Nathaniel Felsky-Deelstra</title>
     <ClientRouter />
   </head>
-  <body>
+  <body class:list={{ 'no-grid': hideGrid }}>
     <header>
       <nav>
         <a href="/" class="name">Nathaniel Felsky-Deelstra</a>

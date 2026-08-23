@@ -15,6 +15,10 @@ const { workingOn } = Astro.props;
 <div class="desk-scene" id="desk-scene" data-working-on={JSON.stringify(workingOn)}>
   <div class="canvas-wrap" id="desk-canvas-wrap">
     <canvas id="desk-canvas"></canvas>
+    <div class="scene-loading" id="desk-loading">
+      <span class="spinner" aria-hidden="true"></span>
+      <span>Loading room&hellip;</span>
+    </div>
   </div>
 
   <div class="fallback" id="desk-fallback" hidden>
@@ -22,6 +26,7 @@ const { workingOn } = Astro.props;
     <p><span class="spec-label">Recently watched</span><span id="fallback-film">Loading&hellip;</span></p>
     <div class="fallback-controls">
       <button type="button" id="fallback-prev" aria-label="Previous film">&lsaquo;</button>
+      <button type="button" id="fallback-power" aria-label="Turn TV on or off" aria-pressed="false">&#9211;</button>
       <button type="button" id="fallback-next" aria-label="Next film">&rsaquo;</button>
     </div>
     <p><span class="spec-label">Working on</span><span>{workingOn.join(', ')}</span></p>
@@ -33,6 +38,7 @@ const { workingOn } = Astro.props;
 
   <div class="tv-controls" id="desk-tv-controls">
     <button type="button" class="tv-btn" id="tv-prev" aria-label="Previous film">&lsaquo;</button>
+    <button type="button" class="tv-btn" id="tv-power" aria-label="Turn TV on or off" aria-pressed="false">&#9211;</button>
     <span class="film-title" id="tv-film-title">Loading&hellip;</span>
     <button type="button" class="tv-btn" id="tv-next" aria-label="Next film">&rsaquo;</button>
   </div>
@@ -98,8 +104,10 @@ const { workingOn } = Astro.props;
     const filmEl = document.getElementById('fallback-film');
     const prevBtn = document.getElementById('fallback-prev');
     const nextBtn = document.getElementById('fallback-next');
+    const powerBtn = document.getElementById('fallback-power');
     container.hidden = false;
     document.getElementById('desk-canvas-wrap')?.setAttribute('hidden', '');
+    document.getElementById('desk-loading')?.setAttribute('hidden', '');
     document.getElementById('desk-tv-controls')?.setAttribute('hidden', '');
 
     fetchTrack().then((track) => {
@@ -110,20 +118,31 @@ const { workingOn } = Astro.props;
 
     let films = [];
     let index = 0;
+    let poweredOn = true;
     function render() {
-      if (filmEl) filmEl.textContent = films.length ? films[index].title : 'No films yet';
+      if (!filmEl) return;
+      if (!poweredOn) {
+        filmEl.textContent = 'TV powered off';
+        return;
+      }
+      filmEl.textContent = films.length ? films[index].title : 'No films yet';
     }
     fetchFilms().then((f) => {
       films = f;
       render();
     });
+    powerBtn?.addEventListener('click', () => {
+      poweredOn = !poweredOn;
+      powerBtn.setAttribute('aria-pressed', String(!poweredOn));
+      render();
+    });
     prevBtn?.addEventListener('click', () => {
-      if (!films.length) return;
+      if (!films.length || !poweredOn) return;
       index = (index - 1 + films.length) % films.length;
       render();
     });
     nextBtn?.addEventListener('click', () => {
-      if (!films.length) return;
+      if (!films.length || !poweredOn) return;
       index = (index + 1) % films.length;
       render();
     });
@@ -252,6 +271,41 @@ const { workingOn } = Astro.props;
     wall.receiveShadow = true;
     scene.add(wall);
 
+    function makeFloorTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256;
+      c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#161210';
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+      ctx.lineWidth = 2;
+      for (let x = 0; x < c.width; x += 32) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, c.height);
+        ctx.stroke();
+      }
+      ctx.fillStyle = 'rgba(255,255,255,0.02)';
+      for (let i = 0; i < 250; i++) {
+        ctx.fillRect(Math.random() * c.width, Math.random() * c.height, 1, 1);
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.repeat.set(10, 10);
+      return tex;
+    }
+
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(40, 30),
+      new THREE.MeshStandardMaterial({ map: makeFloorTexture(), roughness: 0.9 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.set(0, -0.8, 3);
+    floor.receiveShadow = true;
+    scene.add(floor);
+
     const deskWidth = 6.6;
     const deskDepth = 3;
     const deskSideMat = new THREE.MeshStandardMaterial({ color: 0x1a120b, roughness: 0.9 });
@@ -278,35 +332,98 @@ const { workingOn } = Astro.props;
     deskEdge.position.set(0, -0.03, deskDepth / 2);
     scene.add(deskEdge);
 
-    // --- TV ---
+    // apron (the skirt panel under the front edge, between the front legs)
+    // and four legs - without these the desk read as a floating wood plank
+    // rather than a piece of furniture.
+    const legMat = new THREE.MeshStandardMaterial({ color: 0x2e2015, roughness: 0.75 });
+    const legHeight = 0.55;
+    // The desk is deliberately wider than the camera's frame (so the wood
+    // reaches both viewport edges) - the *true* desk corners are well
+    // outside the visible frustum. Legs need to sit under the visually
+    // apparent desk area instead of the true geometric corners, or they
+    // land off-screen and never render at all (confirmed by testing - this
+    // isn't an occlusion issue, they were simply outside the frame).
+    const legInsetX = 1.9;
+    const legBackZ = -(deskDepth / 2 - 0.28);
+    const legFrontZ = deskDepth / 2 - 0.1;
+    const legY = -0.25 - legHeight / 2;
+    [
+      [-legInsetX, legBackZ],
+      [legInsetX, legBackZ],
+      [-legInsetX, legFrontZ],
+      [legInsetX, legFrontZ],
+    ].forEach(([x, z]) => {
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14, legHeight, 0.14), legMat);
+      leg.position.set(x, legY, z);
+      leg.castShadow = true;
+      leg.receiveShadow = true;
+      scene.add(leg);
+    });
+
+    const apron = new THREE.Mesh(
+      new THREE.BoxGeometry(legInsetX * 2 + 0.2, 0.32, 0.06),
+      new THREE.MeshStandardMaterial({ color: 0x1a120b, roughness: 0.85 })
+    );
+    apron.position.set(0, -0.25 - 0.16, legFrontZ - 0.02);
+    apron.castShadow = true;
+    apron.receiveShadow = true;
+    scene.add(apron);
+
+    // --- TV --- a slim-bezel modern flat panel on a single center stand,
+    // not the boxy CRT-ish two-footed shape from the first pass.
     const tvGroup = new THREE.Group();
     tvGroup.position.set(-1.85, deskTop, -0.3);
+    tvGroup.rotation.y = 0.05;
 
-    const footGeo = new THREE.BoxGeometry(0.1, 0.14, 0.1);
-    const footMat = new THREE.MeshStandardMaterial({ color: 0x1c1b19, roughness: 0.7 });
-    const footL = new THREE.Mesh(footGeo, footMat);
-    footL.position.set(-0.55, 0.07, 0.05);
-    footL.castShadow = true;
-    footL.receiveShadow = true;
-    const footR = footL.clone();
-    footR.position.x = 0.55;
-    tvGroup.add(footL, footR);
+    const standNeck = new THREE.Mesh(
+      new THREE.BoxGeometry(0.08, 0.16, 0.05),
+      new THREE.MeshStandardMaterial({ color: 0x232019, roughness: 0.5, metalness: 0.3 })
+    );
+    standNeck.position.set(0, 0.08, 0.04);
+    standNeck.castShadow = true;
+    standNeck.receiveShadow = true;
+    tvGroup.add(standNeck);
+
+    const standFoot = new THREE.Mesh(
+      new THREE.BoxGeometry(0.62, 0.03, 0.34),
+      new THREE.MeshStandardMaterial({ color: 0x1c1b19, roughness: 0.55, metalness: 0.2 })
+    );
+    standFoot.position.set(0, 0.015, 0.08);
+    standFoot.castShadow = true;
+    standFoot.receiveShadow = true;
+    tvGroup.add(standFoot);
 
     const tvBezel = new THREE.Mesh(
-      new THREE.BoxGeometry(1.5, 1.0, 0.12),
-      new THREE.MeshStandardMaterial({ color: 0x1c1b19, roughness: 0.6 })
+      new THREE.BoxGeometry(1.5, 1.0, 0.06),
+      new THREE.MeshStandardMaterial({ color: 0x1a1815, roughness: 0.5, metalness: 0.15 })
     );
-    tvBezel.position.y = 0.14 + 0.5;
+    tvBezel.position.y = 0.16 + 0.5;
     tvBezel.rotation.x = -0.04;
     tvBezel.castShadow = true;
     tvBezel.receiveShadow = true;
     tvGroup.add(tvBezel);
 
+    // Thin thread of a lighter frame right at the screen's edge - reads as
+    // a slim modern bezel lip rather than a single flat-colored slab.
+    const tvFrameLip = new THREE.Mesh(
+      new THREE.BoxGeometry(1.46, 0.96, 0.01),
+      new THREE.MeshStandardMaterial({ color: 0x3a362e, roughness: 0.4, metalness: 0.4 })
+    );
+    tvFrameLip.position.set(0, 0, 0.026);
+    tvBezel.add(tvFrameLip);
+
+    const brandMark = new THREE.Mesh(
+      new THREE.BoxGeometry(0.16, 0.014, 0.005),
+      new THREE.MeshStandardMaterial({ color: 0x6b675e, roughness: 0.4, metalness: 0.5 })
+    );
+    brandMark.position.set(0, -0.465, 0.036);
+    tvBezel.add(brandMark);
+
     const powerLight = new THREE.Mesh(
       new THREE.SphereGeometry(0.012, 8, 8),
       new THREE.MeshBasicMaterial({ color: accent })
     );
-    powerLight.position.set(0.68, -0.44, 0.062);
+    powerLight.position.set(0.68, -0.465, 0.036);
     tvBezel.add(powerLight);
 
     const screenCanvas = document.createElement('canvas');
@@ -328,15 +445,21 @@ const { workingOn } = Astro.props;
     paintScreen('#0c0b0a');
 
     const screen = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.28, 0.82),
+      new THREE.PlaneGeometry(1.42, 0.94),
       new THREE.MeshBasicMaterial({ map: screenTexture })
     );
-    screen.position.set(0, 0, 0.061);
+    screen.position.set(0, 0, 0.033);
     tvBezel.add(screen);
 
     scene.add(tvGroup);
 
+    let isPoweredOn = true;
+
     function setScreenImage(url) {
+      if (!isPoweredOn) {
+        paintScreen('#000000');
+        return;
+      }
       if (!url) {
         paintScreen('#0c0b0a');
         return;
@@ -344,10 +467,14 @@ const { workingOn } = Astro.props;
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
-        if (!screenCtx) return;
+        if (!screenCtx || !isPoweredOn) return;
         const cw = screenCanvas.width;
         const ch = screenCanvas.height;
-        const scale = Math.max(cw / img.width, ch / img.height);
+        // Contain-fit, not cover-fit: movie posters are portrait (~2:3) and
+        // the screen is landscape, so covering the frame would zoom in
+        // hard enough to show only a random crop of the poster - showing
+        // the whole thing letterboxed reads as a poster, not a crop.
+        const scale = Math.min(cw / img.width, ch / img.height);
         const w = img.width * scale;
         const h = img.height * scale;
         screenCtx.fillStyle = '#0c0b0a';
@@ -362,22 +489,210 @@ const { workingOn } = Astro.props;
       img.src = url;
     }
 
-    // --- record player ---
+    function togglePower() {
+      isPoweredOn = !isPoweredOn;
+      powerLight.material.color.set(isPoweredOn ? accent : 0x2a2622);
+      powerBtnRing.material.color.set(isPoweredOn ? accent : 0x2a2622);
+      if (isPoweredOn) {
+        renderFilm();
+      } else {
+        paintScreen('#000000');
+      }
+      const powerHtmlBtn = document.getElementById('tv-power');
+      powerHtmlBtn?.setAttribute('aria-pressed', String(!isPoweredOn));
+    }
+
+    // --- remote control ---
+    // Sits in front of the TV; each button is its own mesh tagged with
+    // userData.action, checked against the raycaster set up further down.
+    // The HTML prev/next/power controls below the canvas call the exact
+    // same stepFilm()/togglePower() functions, so keyboard and screen
+    // reader users get identical functionality, not a degraded substitute.
+    const remoteGroup = new THREE.Group();
+    remoteGroup.position.set(-1.35, deskTop + 0.016, 0.62);
+    remoteGroup.rotation.y = 0.18;
+
+    const remoteBody = new THREE.Mesh(
+      new THREE.BoxGeometry(0.16, 0.03, 0.48),
+      new THREE.MeshStandardMaterial({ color: 0x141313, roughness: 0.55 })
+    );
+    remoteBody.castShadow = true;
+    remoteBody.receiveShadow = true;
+    remoteGroup.add(remoteBody);
+
+    const navBtnMat = new THREE.MeshStandardMaterial({ color: 0x2a2622, roughness: 0.5 });
+    const prevBtn = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.014, 0.08), navBtnMat.clone());
+    prevBtn.position.set(0, 0.022, 0.02);
+    prevBtn.userData.action = 'prev';
+    remoteGroup.add(prevBtn);
+
+    const nextBtn = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.014, 0.08), navBtnMat.clone());
+    nextBtn.position.set(0, 0.022, 0.12);
+    nextBtn.userData.action = 'next';
+    remoteGroup.add(nextBtn);
+
+    const powerBtn = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.045, 0.045, 0.014, 20),
+      new THREE.MeshStandardMaterial({ color: 0x2a2622, roughness: 0.5 })
+    );
+    powerBtn.position.set(0, 0.022, -0.16);
+    powerBtn.userData.action = 'power';
+    remoteGroup.add(powerBtn);
+
+    const powerBtnRing = new THREE.Mesh(
+      new THREE.TorusGeometry(0.028, 0.004, 8, 20),
+      new THREE.MeshBasicMaterial({ color: accent })
+    );
+    powerBtnRing.rotation.x = Math.PI / 2;
+    powerBtnRing.position.set(0, 0.03, -0.16);
+    remoteGroup.add(powerBtnRing);
+
+    scene.add(remoteGroup);
+
+    const remoteButtons = [prevBtn, nextBtn, powerBtn];
+    const raycaster = new THREE.Raycaster();
+    const pointerNDC = new THREE.Vector2();
+
+    function pointerToNDC(event) {
+      const rect = canvas.getBoundingClientRect();
+      pointerNDC.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointerNDC.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+
+    function pickRemoteButton(event) {
+      pointerToNDC(event);
+      raycaster.setFromCamera(pointerNDC, camera);
+      const hits = raycaster.intersectObjects(remoteButtons, false);
+      return hits.length > 0 ? hits[0].object : null;
+    }
+
+    function handleRemoteClick(event) {
+      const btn = pickRemoteButton(event);
+      if (!btn) return;
+      if (btn.userData.action === 'prev') stepFilm(-1);
+      else if (btn.userData.action === 'next') stepFilm(1);
+      else if (btn.userData.action === 'power') togglePower();
+    }
+
+    function handleRemoteHover(event) {
+      canvas.style.cursor = pickRemoteButton(event) ? 'pointer' : '';
+    }
+
+    canvas.addEventListener('click', handleRemoteClick);
+    canvas.addEventListener('pointermove', handleRemoteHover);
+
+    // --- record player --- a box-console suitcase-style unit (wood-finish
+    // case with a built-in speaker below the deck, lid propped open) rather
+    // than the earlier plinth-and-platter-only design.
     const rpGroup = new THREE.Group();
     rpGroup.position.set(1.8, deskTop, 0.15);
+    rpGroup.rotation.y = -0.06;
 
-    const plinth = new THREE.Mesh(
-      new THREE.BoxGeometry(1.7, 0.12, 1.4),
-      new THREE.MeshStandardMaterial({ color: 0x1c1b19, roughness: 0.6 })
+    const caseHeight = 0.45;
+    const caseWidth = 1.7;
+    const caseDepth = 1.4;
+    const woodFinishTexture = makeWoodTexture();
+    const caseSideMat = new THREE.MeshStandardMaterial({ color: 0x2a2015, roughness: 0.8 });
+
+    // The whole front panel is the speaker on real suitcase-style players
+    // (fabric/perforated grille edge-to-edge), not a small grille inset
+    // into a wood front - baked directly into the front-face texture.
+    function makeGrilleTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256;
+      c.height = 256;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#171310';
+      ctx.fillRect(0, 0, 256, 256);
+      ctx.fillStyle = '#0a0806';
+      for (let y = 10; y < 256; y += 14) {
+        for (let x = 10; x < 256; x += 14) {
+          ctx.beginPath();
+          ctx.arc(x, y, 3.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      // a thin wood-toned frame border around the grille, like the trim
+      // strip real suitcase players use to edge the speaker cloth
+      ctx.strokeStyle = '#3a2a18';
+      ctx.lineWidth = 10;
+      ctx.strokeRect(5, 5, 246, 246);
+      return new THREE.CanvasTexture(c);
+    }
+
+    // Small rubber feet lift the case slightly off the desk instead of the
+    // whole box sitting flush - `caseTop` (used by every part of the
+    // turntable mechanism below) is measured from the desk surface, so
+    // raising the case by `feetHeight` here cascades through automatically.
+    const feetHeight = 0.03;
+    const caseCase = new THREE.Mesh(
+      new THREE.BoxGeometry(caseWidth, caseHeight, caseDepth),
+      [
+        caseSideMat,
+        caseSideMat,
+        new THREE.MeshStandardMaterial({ color: 0x1a1512, roughness: 0.9 }),
+        caseSideMat,
+        new THREE.MeshStandardMaterial({ map: makeGrilleTexture(), roughness: 0.85 }),
+        caseSideMat,
+      ]
     );
-    plinth.position.y = 0.06;
-    plinth.castShadow = true;
-    plinth.receiveShadow = true;
-    rpGroup.add(plinth);
+    caseCase.position.y = feetHeight + caseHeight / 2;
+    caseCase.castShadow = true;
+    caseCase.receiveShadow = true;
+    rpGroup.add(caseCase);
+    const caseTop = feetHeight + caseHeight;
+
+    const feetMat = new THREE.MeshStandardMaterial({ color: 0x0a0908, roughness: 0.9 });
+    const feetInsetX = caseWidth / 2 - 0.12;
+    const feetBackZ = -(caseDepth / 2 - 0.12);
+    // Same lesson as the desk legs: the case's own front face occludes
+    // anything set back from its front edge at this camera angle, so the
+    // front feet need to sit almost flush with it, not inset like the back
+    // ones (which stay invisible regardless, and that's fine).
+    const feetFrontZ = caseDepth / 2 - 0.03;
+    [
+      [-feetInsetX, feetBackZ],
+      [feetInsetX, feetBackZ],
+      [-feetInsetX, feetFrontZ],
+      [feetInsetX, feetFrontZ],
+    ].forEach(([x, z]) => {
+      const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, feetHeight, 12), feetMat);
+      foot.position.set(x, feetHeight / 2, z);
+      foot.castShadow = true;
+      foot.receiveShadow = true;
+      rpGroup.add(foot);
+    });
+
+    // lid, hinged at the back edge and propped open near-vertical, leaning
+    // back slightly - revealing the deck/platter rather than covering it.
+    // Made of a transparent material (smoked plastic/glass dust cover,
+    // like real turntable lids) rather than solid wood.
+    const lidPivot = new THREE.Group();
+    lidPivot.position.set(0, caseTop, -caseDepth / 2);
+    lidPivot.rotation.x = -1.3;
+    const lidGlassMat = new THREE.MeshPhysicalMaterial({
+      color: 0xc9d6d2,
+      transparent: true,
+      opacity: 0.32,
+      roughness: 0.12,
+      metalness: 0,
+      side: THREE.DoubleSide,
+    });
+    const lid = new THREE.Mesh(
+      new THREE.BoxGeometry(caseWidth + 0.03, 0.03, caseDepth + 0.02),
+      lidGlassMat
+    );
+    lid.position.z = (caseDepth + 0.02) / 2;
+    // A transparent "glass" lid casting an opaque shadow would look wrong
+    // (three.js shadow maps don't account for material transparency), so
+    // it doesn't cast one - it still receives shadows from other objects.
+    lid.receiveShadow = true;
+    lidPivot.add(lid);
+    rpGroup.add(lidPivot);
 
     const knobMat = new THREE.MeshStandardMaterial({ color: 0x2a2622, roughness: 0.5 });
     const startButton = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.02, 16), knobMat);
-    startButton.position.set(0.55, 0.13, 0.55);
+    startButton.position.set(0.55, caseTop + 0.01, 0.55);
     const powerButton = startButton.clone();
     powerButton.material = new THREE.MeshStandardMaterial({ color: 0x2a2622, roughness: 0.5 });
     powerButton.position.x = 0.68;
@@ -386,30 +701,30 @@ const { workingOn } = Astro.props;
       new THREE.SphereGeometry(0.008, 8, 8),
       new THREE.MeshBasicMaterial({ color: accent })
     );
-    powerButtonLight.position.set(0.68, 0.145, 0.55);
+    powerButtonLight.position.set(0.68, caseTop + 0.025, 0.55);
     rpGroup.add(powerButtonLight);
 
     const platter = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.72, 0.72, 0.04, 48),
+      new THREE.CylinderGeometry(0.62, 0.62, 0.04, 48),
       new THREE.MeshStandardMaterial({ color: 0x100e0c, roughness: 0.5 })
     );
-    platter.position.y = 0.14;
+    platter.position.y = caseTop + 0.02;
     platter.castShadow = true;
     rpGroup.add(platter);
 
     const platterRim = new THREE.Mesh(
-      new THREE.TorusGeometry(0.715, 0.01, 8, 48),
+      new THREE.TorusGeometry(0.615, 0.01, 8, 48),
       new THREE.MeshStandardMaterial({ color: 0x3a352c, roughness: 0.35, metalness: 0.5 })
     );
     platterRim.rotation.x = Math.PI / 2;
-    platterRim.position.y = 0.161;
+    platterRim.position.y = caseTop + 0.041;
     rpGroup.add(platterRim);
 
     const feltMat = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.685, 0.685, 0.006, 48),
+      new THREE.CylinderGeometry(0.585, 0.585, 0.006, 48),
       new THREE.MeshStandardMaterial({ color: 0x1f2320, roughness: 0.95 })
     );
-    feltMat.position.y = 0.163;
+    feltMat.position.y = caseTop + 0.043;
     rpGroup.add(feltMat);
 
     const recordCanvas = document.createElement('canvas');
@@ -427,14 +742,18 @@ const { workingOn } = Astro.props;
       recordCtx.beginPath();
       recordCtx.arc(cx, cx, size / 2, 0, Math.PI * 2);
       recordCtx.fill();
-      recordCtx.strokeStyle = 'rgba(0,0,0,0.55)';
+
+      // Just a couple of faint grooves at the very outer edge - the album
+      // art itself now covers almost the whole face, like a picture disc.
+      recordCtx.strokeStyle = 'rgba(0,0,0,0.5)';
       recordCtx.lineWidth = 3;
-      for (let r = size * 0.22; r < size * 0.49; r += 7) {
+      for (let r = size * 0.47; r < size * 0.495; r += 6) {
         recordCtx.beginPath();
         recordCtx.arc(cx, cx, r, 0, Math.PI * 2);
         recordCtx.stroke();
       }
-      const labelR = size * 0.2;
+
+      const labelR = size * 0.455;
       recordCtx.save();
       recordCtx.beginPath();
       recordCtx.arc(cx, cx, labelR, 0, Math.PI * 2);
@@ -448,21 +767,21 @@ const { workingOn } = Astro.props;
       recordCtx.restore();
       recordCtx.fillStyle = '#100e0c';
       recordCtx.beginPath();
-      recordCtx.arc(cx, cx, size * 0.012, 0, Math.PI * 2);
+      recordCtx.arc(cx, cx, size * 0.02, 0, Math.PI * 2);
       recordCtx.fill();
       recordTexture.needsUpdate = true;
     }
     paintRecord(null);
 
     const record = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.66, 0.66, 0.012, 48),
+      new THREE.CylinderGeometry(0.56, 0.56, 0.012, 48),
       [
         new THREE.MeshStandardMaterial({ color: 0x0c0b0a }),
         new THREE.MeshStandardMaterial({ map: recordTexture }),
         new THREE.MeshStandardMaterial({ color: 0x0c0b0a }),
       ]
     );
-    record.position.y = 0.166 + 0.006;
+    record.position.y = caseTop + 0.052;
     record.castShadow = true;
     rpGroup.add(record);
 
@@ -479,7 +798,7 @@ const { workingOn } = Astro.props;
     }
 
     const tonearmPivot = new THREE.Group();
-    tonearmPivot.position.set(0.55, 0.23, -0.5);
+    tonearmPivot.position.set(0.45, caseTop + 0.11, -0.5);
 
     const pivotBase = new THREE.Mesh(
       new THREE.CylinderGeometry(0.05, 0.055, 0.05, 16),
@@ -523,17 +842,84 @@ const { workingOn } = Astro.props;
 
     scene.add(rpGroup);
 
+    // --- banker's lamp ---
+    const lampGroup = new THREE.Group();
+    lampGroup.position.set(0.75, deskTop, -0.85);
+    lampGroup.rotation.y = 0.12;
+
+    const brassMat = new THREE.MeshStandardMaterial({ color: 0xc9a24a, roughness: 0.35, metalness: 0.75 });
+    const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.19, 0.035, 24), brassMat);
+    lampBase.position.y = 0.0175;
+    lampBase.castShadow = true;
+    lampGroup.add(lampBase);
+
+    const lampPole = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.62, 12), brassMat);
+    lampPole.position.y = 0.035 + 0.31;
+    lampPole.castShadow = true;
+    lampGroup.add(lampPole);
+
+    const lampJoint = new THREE.Mesh(new THREE.SphereGeometry(0.032, 12, 12), brassMat);
+    lampJoint.position.y = 0.035 + 0.62;
+    lampGroup.add(lampJoint);
+
+    // A traditional banker's-lamp shade is a dome/bell curve - wide open
+    // rim at the bottom, curving up to a narrow opening at top where it
+    // meets the arm - not a straight-sided cone. LatheGeometry revolves a
+    // 2D profile (radius, height) around the Y axis; the profile below
+    // goes from the wide bottom rim (y=0) up to the narrow top (y=0.22),
+    // so the shade's own local +Y already points up correctly with no
+    // rotation needed to get the wide-end-down orientation right.
+    const shadeProfile = [
+      new THREE.Vector2(0.25, 0),
+      new THREE.Vector2(0.248, 0.014),
+      new THREE.Vector2(0.22, 0.07),
+      new THREE.Vector2(0.17, 0.13),
+      new THREE.Vector2(0.11, 0.18),
+      new THREE.Vector2(0.075, 0.22),
+    ];
+    const greenGlassMat = new THREE.MeshStandardMaterial({ color: 0x1f5c3f, roughness: 0.28, metalness: 0.1 });
+    const shade = new THREE.Mesh(new THREE.LatheGeometry(shadeProfile, 32), greenGlassMat);
+    shade.position.set(0, lampJoint.position.y - 0.26, 0.1);
+    shade.rotation.x = -0.22;
+    shade.castShadow = true;
+    lampGroup.add(shade);
+
+    const shadeRim = new THREE.Mesh(new THREE.TorusGeometry(0.25, 0.01, 8, 32), brassMat);
+    shadeRim.position.copy(shade.position);
+    shadeRim.rotation.x = Math.PI / 2 - 0.22;
+    lampGroup.add(shadeRim);
+
+    const shadeCap = new THREE.Mesh(new THREE.SphereGeometry(0.077, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), brassMat);
+    shadeCap.position.set(shade.position.x, shade.position.y + 0.22, shade.position.z);
+    shadeCap.rotation.x = Math.PI - 0.22;
+    lampGroup.add(shadeCap);
+
+    // shade.position is the shade's wide bottom rim (LatheGeometry's local
+    // origin sits at the first profile point), not its vertical center.
+    const bulbGlow = new THREE.PointLight(0xfff2c9, 0.45, 1.6);
+    bulbGlow.position.set(shade.position.x, shade.position.y - 0.02, shade.position.z + 0.02);
+    lampGroup.add(bulbGlow);
+
+    const pullChain = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.12, 6), brassMat);
+    pullChain.position.set(0.1, shade.position.y + 0.06, shade.position.z + 0.16);
+    lampGroup.add(pullChain);
+
+    scene.add(lampGroup);
+
     // --- note ---
+    // Lies flat on the desk (the propped-up "table tent" pose looked odd
+    // and was reverted) - text legibility comes from a high-res canvas,
+    // large bold lettering, and near-black ink instead of from the angle.
     const noteCanvas = document.createElement('canvas');
-    noteCanvas.width = 384;
-    noteCanvas.height = 512;
+    noteCanvas.width = 480;
+    noteCanvas.height = 640;
     const noteCtx = noteCanvas.getContext('2d');
     const noteTexture = new THREE.CanvasTexture(noteCanvas);
 
     async function paintNote() {
       if (!noteCtx) return;
       try {
-        await document.fonts.load('28px "Shantell Sans"');
+        await document.fonts.load('bold 48px "Shantell Sans"');
         await document.fonts.ready;
       } catch {
         /* fall through with whatever font is available */
@@ -542,21 +928,21 @@ const { workingOn } = Astro.props;
       const h = noteCanvas.height;
       noteCtx.fillStyle = '#eee7d8';
       noteCtx.fillRect(0, 0, w, h);
-      noteCtx.fillStyle = '#3a3226';
-      noteCtx.font = '32px "Shantell Sans", cursive';
-      noteCtx.fillText('working on:', 36, 64);
-      noteCtx.font = '26px "Shantell Sans", cursive';
-      let y = 128;
+      noteCtx.fillStyle = '#1c140c';
+      noteCtx.font = 'bold 52px "Shantell Sans", cursive';
+      noteCtx.fillText('working on:', 40, 92);
+      noteCtx.font = 'bold 44px "Shantell Sans", cursive';
+      let y = 184;
       for (const item of workingOn) {
-        noteCtx.fillText(`- ${item}`, 40, y);
-        y += 56;
+        noteCtx.fillText(`- ${item}`, 46, y);
+        y += 82;
       }
       noteTexture.needsUpdate = true;
     }
     paintNote();
 
     const note = new THREE.Mesh(
-      new THREE.BoxGeometry(0.95, 0.02, 1.25),
+      new THREE.BoxGeometry(0.98, 0.02, 1.3),
       [
         new THREE.MeshStandardMaterial({ color: 0xeee7d8 }),
         new THREE.MeshStandardMaterial({ color: 0xeee7d8 }),
@@ -566,9 +952,11 @@ const { workingOn } = Astro.props;
         new THREE.MeshStandardMaterial({ color: 0xeee7d8 }),
       ]
     );
-    note.position.set(-0.05, deskTop + 0.02, 0.95);
-    note.rotation.y = 0.06;
-    note.rotation.z = 0.015;
+    // Smaller and pulled back from the earlier position, which hung its
+    // front edge out past the desk's own front edge (z=1.5) into open air.
+    note.position.set(-0.2, deskTop + 0.02, 0.5);
+    note.rotation.y = -0.05;
+    note.rotation.z = 0.02;
     note.castShadow = true;
     note.receiveShadow = true;
     scene.add(note);
@@ -594,14 +982,51 @@ const { workingOn } = Astro.props;
 
     let films = [];
     let filmIndex = 0;
+    // Only the first film's poster arrives pre-encoded from /api/letterboxd
+    // (keeps the initial page payload small); the rest carry a `sourceUrl`
+    // instead and get fetched from /api/poster the first time the user
+    // actually navigates to them, then cached in-memory by url.
+    const posterCache = new Map();
+    async function resolveFilmThumb(film) {
+      if (film.thumb) return film.thumb;
+      if (!film.sourceUrl) return null;
+      if (posterCache.has(film.sourceUrl)) return posterCache.get(film.sourceUrl);
+      try {
+        const res = await fetch(`/api/poster?url=${encodeURIComponent(film.sourceUrl)}`);
+        const data = await res.json();
+        if (data.dataUri) {
+          posterCache.set(film.sourceUrl, data.dataUri);
+          return data.dataUri;
+        }
+      } catch {
+        /* fall through to null below */
+      }
+      return null;
+    }
+    let renderToken = 0;
     function renderFilm() {
       if (!films.length) return;
       const film = films[filmIndex];
-      setScreenImage(film.thumb);
+      const token = ++renderToken;
       if (filmTitleEl) filmTitleEl.textContent = film.title;
       if (srSummary) {
-        srSummary.textContent = `Recently watched: ${film.title}. Working on: ${workingOn.join(', ')}.`;
+        srSummary.textContent = `${isPoweredOn ? 'Recently watched' : 'TV powered off'}: ${film.title}. Working on: ${workingOn.join(', ')}.`;
       }
+      if (film.thumb) {
+        setScreenImage(film.thumb);
+        return;
+      }
+      paintScreen('#0c0b0a');
+      resolveFilmThumb(film).then((thumb) => {
+        if (token !== renderToken) return; // superseded by a later stepFilm()
+        if (thumb) film.thumb = thumb;
+        setScreenImage(thumb);
+      });
+    }
+    function stepFilm(delta) {
+      if (!films.length || !isPoweredOn) return;
+      filmIndex = (filmIndex + delta + films.length) % films.length;
+      renderFilm();
     }
     fetchFilms().then((f) => {
       films = f;
@@ -610,16 +1035,9 @@ const { workingOn } = Astro.props;
       else if (filmTitleEl) filmTitleEl.textContent = 'No films yet';
     });
 
-    document.getElementById('tv-prev')?.addEventListener('click', () => {
-      if (!films.length) return;
-      filmIndex = (filmIndex - 1 + films.length) % films.length;
-      renderFilm();
-    });
-    document.getElementById('tv-next')?.addEventListener('click', () => {
-      if (!films.length) return;
-      filmIndex = (filmIndex + 1) % films.length;
-      renderFilm();
-    });
+    document.getElementById('tv-prev')?.addEventListener('click', () => stepFilm(-1));
+    document.getElementById('tv-next')?.addEventListener('click', () => stepFilm(1));
+    document.getElementById('tv-power')?.addEventListener('click', () => togglePower());
 
     // --- render loop, with cleanup once the canvas leaves the DOM (Astro's
     // ClientRouter swaps page content without a hard reload) ---
@@ -633,6 +1051,8 @@ const { workingOn } = Astro.props;
       disposed = true;
       if (activeDispose === dispose) activeDispose = null;
       resizeObserver.disconnect();
+      canvas.removeEventListener('click', handleRemoteClick);
+      canvas.removeEventListener('pointermove', handleRemoteHover);
       scene.traverse((obj) => {
         if (obj.geometry) obj.geometry.dispose();
         if (obj.material) {
@@ -648,6 +1068,7 @@ const { workingOn } = Astro.props;
     }
     activeDispose = dispose;
 
+    let loadingHidden = false;
     function tick() {
       if (!canvas.isConnected) {
         dispose();
@@ -659,6 +1080,10 @@ const { workingOn } = Astro.props;
         tonearmPivot.rotation.y += (target - tonearmPivot.rotation.y) * 0.08;
       }
       renderer.render(scene, camera);
+      if (!loadingHidden) {
+        loadingHidden = true;
+        document.getElementById('desk-loading')?.setAttribute('hidden', '');
+      }
       requestAnimationFrame(tick);
     }
     tick();
@@ -695,15 +1120,59 @@ const { workingOn } = Astro.props;
   }
 
   .canvas-wrap {
+    position: relative;
     width: 100%;
-    height: min(78vh, 900px);
-    min-height: 420px;
+    height: min(94vh, 1100px);
+    min-height: 480px;
   }
 
   #desk-canvas {
     display: block;
     width: 100%;
     height: 100%;
+  }
+
+  /* Shown until the first frame actually renders - three.js itself is a
+     sizeable download, so without this the room just looks stalled/broken
+     rather than loading. Hidden via the `hidden` attribute from JS. */
+  .scene-loading {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    color: var(--color-label);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .scene-loading:not([hidden]) {
+    display: flex;
+  }
+
+  .scene-loading .spinner {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--color-border-strong);
+    border-top-color: var(--color-accent);
+    animation: scene-spin 0.8s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scene-loading .spinner {
+      animation: none;
+    }
+  }
+
+  @keyframes scene-spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   .fallback {
@@ -744,17 +1213,24 @@ const { workingOn } = Astro.props;
     white-space: nowrap;
   }
 
-  .tv-controls,
   .fallback-controls {
     margin-top: var(--space-2);
   }
 
+  /* Overlaid near the bottom of the scene rather than pushed below it in
+     flow - keeps the room filling the page edge-to-edge down to the
+     footer instead of leaving a plain gap underneath for these controls. */
   .tv-controls {
     display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--space-4);
     align-items: center;
     justify-content: center;
     gap: var(--space-2);
     padding-inline: var(--space-5);
+    z-index: 2;
   }
 
   .tv-controls:not([hidden]) {

@@ -88,6 +88,15 @@ body::before {
   background-size: 28px 28px;
 }
 
+/* Pages that want to look like a real, self-contained space (the Now page's
+   3D room) opt out of the sitewide grid for their own content - main gets an
+   opaque background so the fixed grid layer behind it can't show through.
+   Header/footer sit outside `main` and keep the grid showing through their
+   own semi-transparent backgrounds as normal. */
+body.no-grid main {
+  background: var(--color-bg);
+}
+
 a {
   color: inherit;
 }

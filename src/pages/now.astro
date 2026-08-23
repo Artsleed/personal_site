@@ -6,23 +6,49 @@ const title = 'Now';
 const workingOn = ['Magic Mirror', 'School prep'];
 ---
 
-<Layout title="Now">
+<Layout title="Now" hideGrid>
   <div class="now">
-    <p class="kicker">Today</p>
-    <h1 class="page-title">{title}</h1>
-
     <div class="full-bleed scene-breakout">
       <DeskScene workingOn={workingOn} />
+    </div>
+
+    <div class="now-heading">
+      <p class="kicker">Today</p>
+      <h1 class="page-title">{title}</h1>
     </div>
   </div>
 </Layout>
 
 <style>
   .now {
+    position: relative;
     max-width: var(--page-width);
   }
 
+  /* Pull the scene up flush against the sticky header (cancelling main's
+     own top padding just for this element) so the room reads as starting
+     right at the header bar, instead of leaving the usual page gap above it. */
   .scene-breakout {
-    margin-top: var(--space-1);
+    margin-top: calc(-1 * var(--space-4));
+  }
+
+  /* Overlaid on top of the scene rather than pushing it down - the wall
+     shows through behind the kicker/title, confirmed with the user as the
+     preferred layout before building (nav stays solid/opaque above both). */
+  .now-heading {
+    position: absolute;
+    top: var(--space-4);
+    left: 0;
+    right: 0;
+    z-index: 2;
+  }
+
+  .now-heading .page-title {
+    margin-bottom: 0;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  }
+
+  .now-heading .kicker {
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
   }
 </style>
