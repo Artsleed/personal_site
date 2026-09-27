@@ -77,14 +77,18 @@ import '@fontsource/caveat/600.css';
   </div>
 
   <!-- Desktop: a transparent passthrough (100% size, centers .stage exactly
-       like .room-wrap used to do directly). Mobile: a fixed-height,
-       overflow-hidden crop window - .stage still renders at full size
-       inside it, just clipped to a short strip. See fit()'s mobile branch
-       for the width-only scale that makes this a "cover" crop instead of
-       shrinking the whole room to fit, and flex centering here is what
-       crops it to a vertically-centered band (the desk/corkboard area)
-       rather than an arbitrary one. -->
-  <div class="hero-crop">
+       like .room-wrap used to do directly) - unaffected by anything below.
+
+       Mobile: not a crop at all - the real navigation. .stage is zoomed
+       (not scaled - see fit()'s mobile branch for why zoom specifically)
+       well past what fits the viewport width, and this becomes a
+       horizontally scrollable viewport into it: you land centered on the
+       desk and swipe to look toward either wall, tapping hotspots directly
+       on the illustration at a size big enough to actually hit. Replaced
+       an earlier version of this (a short, fixed-height, non-interactive
+       crop strip above a separate text list of the 6 sections) - see
+       CLAUDE.md for why. -->
+  <div class="hero-crop" id="hero-crop">
     <div class="stage" id="room-stage">
     <div class="scene" set:html={roomSvgRaw} />
 
@@ -182,20 +186,14 @@ import '@fontsource/caveat/600.css';
     </div>
   </div>
 
-  <!-- Mobile only - the room's real navigation there (hotspots are too
-       small to tap in the cropped hero strip above). Each button already
-       carries the same data-go attribute the hotspots/nav use, so the
-       existing document-level click handler (see the script below) opens
-       cards from here with no extra JS. -->
-  <nav class="mobile-zone-list" aria-label="Sections">
-    {roomZones.map((zone) => (
-      <button class="mobile-zone-item" type="button" data-go={zone.id}>
-        <span class="mz-object">{zone.object}</span>
-        <span class="mz-title">{zone.title}</span>
-      </button>
-    ))}
+  <!-- Mobile only - a small fixed row below the pannable room. The room
+       itself is the real navigation now (tap a hotspot directly), so this
+       is just the "there's more to see" affordance plus the plain-text
+       fallback link. -->
+  <div class="mobile-hint-row">
+    <span class="swipe-hint">&larr; swipe to look around &rarr;</span>
     <a href="/plain" class="mobile-plain-link">Plain version</a>
-  </nav>
+  </div>
 
   <!--
     Deliberately a sibling of .hero-crop, not nested inside .stage anymore
@@ -276,23 +274,54 @@ import '@fontsource/caveat/600.css';
 
 <script>
   // Keep in sync with the `max-width: 900px` breakpoint in this component's
-  // <style> block (.hero-crop, .mobile-header, .mobile-zone-list, etc.).
+  // <style> block (.hero-crop, .mobile-header, .mobile-hint-row, etc.).
   const MOBILE_BREAKPOINT = 900;
+
+  function isMobile() {
+    return window.innerWidth <= MOBILE_BREAKPOINT;
+  }
 
   function fit() {
     const stage = document.getElementById('room-stage');
     if (!stage) return;
-    const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
-    // Desktop: contain-fit (the whole 1440x900 room visible, letterboxed if
-    // the viewport's aspect ratio doesn't match). Mobile: width-only
-    // "cover" fit - .hero-crop clips the now-taller-than-its-box stage to a
-    // short strip via overflow:hidden, and centers it (see that rule),
-    // which is what turns this into a vertically-centered crop of the
-    // room rather than the whole thing shrunk to fit a tiny box.
-    const scale = isMobile
-      ? window.innerWidth / 1440
-      : Math.min(window.innerWidth / 1440, window.innerHeight / 900);
-    stage.style.transform = `scale(${scale})`;
+    if (isMobile()) {
+      // `zoom`, not `transform: scale()`, deliberately - #hero-crop is a
+      // real scroll container here (overflow-x: auto), and CSS transform
+      // is purely a paint-time effect: it doesn't change an element's
+      // layout box, so a transform-scaled .stage would still report its
+      // full unscaled 1440px width to its scrolling parent (wrong
+      // scrollWidth, and every scrollLeft math below would be off by
+      // whatever the scale factor is). `zoom` changes the actual layout
+      // size, so #hero-crop's scrollWidth and every position read off
+      // .spot/.zone children below are already in the correct, current,
+      // zoomed pixel space - no separate scale bookkeeping needed.
+      const heroCrop = document.getElementById('hero-crop');
+      const availableHeight = heroCrop ? heroCrop.clientHeight : window.innerHeight * 0.6;
+      stage.style.transform = 'none';
+      stage.style.zoom = String(availableHeight / 900);
+    } else {
+      stage.style.zoom = '1';
+      // Contain-fit: the whole 1440x900 room visible, letterboxed if the
+      // viewport's aspect ratio doesn't match.
+      const scale = Math.min(window.innerWidth / 1440, window.innerHeight / 900);
+      stage.style.transform = `scale(${scale})`;
+    }
+  }
+
+  // Scrolls #hero-crop so `el` (a .spot button, in its already-zoomed
+  // pixel space) sits centered - used once on load to open on the desk
+  // (or whichever zone's hash was in the URL) instead of wherever the
+  // scroll container's default scrollLeft:0 would land (the far left
+  // wall). Reads current positions via getBoundingClientRect rather than
+  // trusting any particular scale/zoom formula, so it stays correct even
+  // if fit()'s math changes later.
+  function centerRoomOn(el: HTMLElement | null) {
+    const heroCrop = document.getElementById('hero-crop');
+    if (!heroCrop || !el || !isMobile()) return;
+    const wrapRect = heroCrop.getBoundingClientRect();
+    const elRect = el.getBoundingClientRect();
+    const elCenterInContent = elRect.left - wrapRect.left + heroCrop.scrollLeft + elRect.width / 2;
+    heroCrop.scrollLeft = elCenterInContent - heroCrop.clientWidth / 2;
   }
 
   let lastTrigger: HTMLElement | null = null;
@@ -465,6 +494,16 @@ import '@fontsource/caveat/600.css';
     openFromHash();
     loadPosters();
     loadNowPlaying();
+    // Centers on whichever zone's hash was in the URL (so closing a card
+    // you deep-linked to leaves you looking at the right object), or the
+    // desk by default - the brief for this was literally "starts zoomed in
+    // on the center area/desk". Deliberately only on page-load, not on
+    // every resize (window.addEventListener('resize', fit) below stays
+    // fit-only) - re-centering on resize would yank the view out from
+    // under someone who's already panned to look at something else.
+    const hashId = location.hash.slice(1);
+    const targetId = document.querySelector(`.spot[data-go="${hashId}"]`) ? hashId : 'blog';
+    centerRoomOn(document.querySelector<HTMLElement>(`.spot[data-go="${targetId}"]`));
   });
   window.addEventListener('resize', fit);
 </script>
@@ -505,8 +544,8 @@ import '@fontsource/caveat/600.css';
   /* Desktop: fills .room-wrap exactly (100%/100%) and centers .stage inside
      it - a transparent passthrough that changes nothing visually from
      before this existed. Mobile (see the max-width: 900px query) is where
-     this actually does something: a fixed, short height + overflow:hidden
-     turns it into a cropped hero strip instead. */
+     this actually does something: a scrollable viewport onto a zoomed-in
+     .stage, not a crop at all - see that query for the real rules. */
   .hero-crop {
     width: 100%;
     height: 100%;
@@ -517,7 +556,7 @@ import '@fontsource/caveat/600.css';
   }
 
   .mobile-header,
-  .mobile-zone-list {
+  .mobile-hint-row {
     display: none;
   }
 
@@ -1032,100 +1071,116 @@ import '@fontsource/caveat/600.css';
   }
 
   /* ---------------------------------------------------------------------
-   * Small screens - a cropped hero strip of the room, then a plain
-   * vertical list of the six sections (per design/room-handoff/HANDOFF.md
-   * section 8's recommendation). Keep this breakpoint in sync with
-   * MOBILE_BREAKPOINT in the script above.
+   * Small screens - the room itself, zoomed in and horizontally
+   * scrollable, is the navigation (see the markup comment on #hero-crop).
+   * Replaced an earlier version of this (a short, fixed-height,
+   * non-interactive crop strip above a separate text list of the 6
+   * sections) after live feedback that it read as a decorative afterthought
+   * rather than a real part of the site - full context in CLAUDE.md. Keep
+   * this breakpoint in sync with MOBILE_BREAKPOINT in the script above.
    * --------------------------------------------------------------------- */
   @media (max-width: 900px) {
     .room-wrap {
       /* Undoes the desktop fixed-fullscreen-overlay treatment - on mobile
-         this is normal in-flow page content (hero strip + a list you
-         scroll through), not a viewport-locked stage. */
+         this is normal in-flow page content (header, then the room filling
+         whatever's left, then a thin hint row), one screen tall with no
+         page-level vertical scroll (only #hero-crop scrolls, horizontally).
+
+         `height` here, deliberately not `min-height` (which is what this
+         used to be, back when the room was a short fixed-height strip
+         that could never be taller than 100vh anyway). #hero-crop's
+         child, .stage, has a non-negotiable native height (900px, before
+         any zoom) - with only a min-height floor, once real content
+         (.stage) needed more room than that floor, the *container* just
+         grew to fit it instead of #hero-crop's flex-grow ever having a
+         fixed budget to shrink it into. Confirmed by measuring: body
+         rendered ~1067px tall on an ~844px viewport, .hero-crop reporting
+         a 900px clientHeight (.stage's own unshrunk height) instead of
+         whatever space should've been left after the header/hint row -
+         which in turn meant fit()'s mobile zoom calc (availableHeight /
+         900) always came out to ~1, i.e. no zoom applied at all. A real
+         `height` gives flex-grow/shrink an actual budget to distribute,
+         so #hero-crop is forced to the *remaining* space and clips
+         .stage's overflow via overflow-y: hidden as intended. `100dvh`
+         over `100vh` where supported - accounts for mobile browser
+         chrome (address bar) showing/hiding, so this doesn't over- or
+         under-shoot the real visible height as that happens. */
       position: static;
       width: 100%;
-      height: auto;
-      min-height: 100vh;
+      height: 100vh;
+      height: 100dvh;
       flex-direction: column;
       align-items: stretch;
       justify-content: flex-start;
-      overflow: visible;
+      overflow: hidden;
     }
 
     .mobile-header {
       display: block;
-      padding: 28px 20px 6px;
+      flex: none;
+      padding: 24px 20px 10px;
     }
 
     .mobile-header h1 {
       margin: 0 0 4px 0;
       font-family: 'Instrument Serif', Georgia, serif;
       font-weight: 400;
-      font-size: 32px;
+      font-size: 30px;
       line-height: 1;
       color: var(--room-ink-strong);
     }
 
     .mobile-header p {
       margin: 0;
-      font-size: 14px;
+      font-size: 13.5px;
       color: var(--room-ink-muted);
     }
 
+    /* Fills whatever vertical space is left after the header and hint row
+       (flex:1 on a column flex parent) and scrolls horizontally - fit()'s
+       mobile branch reads this element's own resulting clientHeight to
+       size the zoom, so its height must come from layout (flex), not be
+       set here in a way that depends on the zoom itself (that would be
+       circular). */
     .hero-crop {
-      flex: none;
-      height: 220px;
+      flex: 1;
+      min-height: 0;
+      justify-content: flex-start;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x proximity;
     }
 
-    /* The room itself is decorative on mobile (too small to tap
-       accurately) - the list below is the real navigation. */
-    .room-header,
-    .labels,
-    .spot {
+    /* Only the desktop header (name/tagline/nav baked into the 1440x900
+       composition) is hidden - .mobile-header stands in for it, real-size,
+       outside the zoomed area. .labels and .spot stay visible: on mobile
+       they're the actual navigation, not decoration. */
+    .room-header {
       display: none;
     }
 
-    .mobile-zone-list {
+    .spot {
+      scroll-snap-align: center;
+    }
+
+    .mobile-hint-row {
       display: flex;
-      flex-direction: column;
-      padding: 4px 20px 40px;
+      flex: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px 16px;
     }
 
-    .mobile-zone-item {
-      all: unset;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 2px;
-      min-height: 44px;
-      padding: 16px 2px;
-      border-top: 1px solid var(--room-panel-line);
-      cursor: pointer;
-    }
-
-    .mobile-zone-list > .mobile-zone-item:first-child {
-      border-top: none;
-    }
-
-    .mz-object {
+    .swipe-hint {
       font-family: 'Caveat', 'Segoe Print', cursive;
       font-weight: 600;
-      font-size: 18px;
-      line-height: 1;
-      color: var(--room-accent);
-    }
-
-    .mz-title {
-      font-family: 'Instrument Serif', Georgia, serif;
-      font-size: 22px;
-      line-height: 1.2;
-      color: var(--room-ink-strong);
+      font-size: 16px;
+      color: var(--room-ink-muted);
     }
 
     .mobile-plain-link {
-      align-self: flex-start;
-      margin-top: 18px;
-      font-size: 14px;
+      font-size: 13px;
       color: var(--room-accent);
       text-decoration: none;
     }
