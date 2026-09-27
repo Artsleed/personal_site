@@ -64,7 +64,28 @@ import '@fontsource/caveat/600.css';
 ---
 
 <div class="room-wrap">
-  <div class="stage" id="room-stage">
+  <!-- Mobile only (see the max-width: 900px query below) - a real,
+       normal-size header above the cropped hero strip. The desktop
+       .room-header lives inside .stage and gets scaled/cropped along with
+       it, which is fine on desktop (it's meant to be part of the 1440x900
+       composition) but would make the name/tagline illegibly tiny or clip
+       it out of the crop window entirely on a phone - so it's hidden on
+       mobile and this un-scaled version stands in for it instead. -->
+  <div class="mobile-header">
+    <h1>Nathaniel</h1>
+    <p>Come in. Everything on the site lives somewhere in this room.</p>
+  </div>
+
+  <!-- Desktop: a transparent passthrough (100% size, centers .stage exactly
+       like .room-wrap used to do directly). Mobile: a fixed-height,
+       overflow-hidden crop window - .stage still renders at full size
+       inside it, just clipped to a short strip. See fit()'s mobile branch
+       for the width-only scale that makes this a "cover" crop instead of
+       shrinking the whole room to fit, and flex centering here is what
+       crops it to a vertically-centered band (the desk/corkboard area)
+       rather than an arbitrary one. -->
+  <div class="hero-crop">
+    <div class="stage" id="room-stage">
     <div class="scene" set:html={roomSvgRaw} />
 
     <!--
@@ -158,8 +179,37 @@ import '@fontsource/caveat/600.css';
         <a href="/plain" class="plain">Plain version</a>
       </nav>
     </header>
+    </div>
+  </div>
 
-    <div class="overlay" id="room-overlay" hidden>
+  <!-- Mobile only - the room's real navigation there (hotspots are too
+       small to tap in the cropped hero strip above). Each button already
+       carries the same data-go attribute the hotspots/nav use, so the
+       existing document-level click handler (see the script below) opens
+       cards from here with no extra JS. -->
+  <nav class="mobile-zone-list" aria-label="Sections">
+    {roomZones.map((zone) => (
+      <button class="mobile-zone-item" type="button" data-go={zone.id}>
+        <span class="mz-object">{zone.object}</span>
+        <span class="mz-title">{zone.title}</span>
+      </button>
+    ))}
+    <a href="/plain" class="mobile-plain-link">Plain version</a>
+  </nav>
+
+  <!--
+    Deliberately a sibling of .hero-crop, not nested inside .stage anymore
+    (it used to be). .stage carries a CSS `transform` (for the room's
+    scale-to-fit), and a transformed ancestor becomes the containing block
+    for its descendants - fine on desktop where the card only ever needs to
+    sit within that same transformed box, but on mobile .hero-crop clips
+    .stage's box down to a short strip via overflow:hidden, which would
+    clip the card too if it stayed inside. Moved out so `position: fixed`
+    here binds to the real viewport on both breakpoints - see the .overlay/
+    .zone rules below for how desktop (absolute, relative to .room-wrap)
+    and mobile (fixed, a true full-screen sheet) differ.
+  -->
+  <div class="overlay" id="room-overlay" hidden>
       <button class="scrim" type="button" aria-label="Back to the room" data-back></button>
       <div class="card-dock">
         {roomZones.map((zone) => (
@@ -222,14 +272,26 @@ import '@fontsource/caveat/600.css';
         ))}
       </div>
     </div>
-  </div>
 </div>
 
 <script>
+  // Keep in sync with the `max-width: 900px` breakpoint in this component's
+  // <style> block (.hero-crop, .mobile-header, .mobile-zone-list, etc.).
+  const MOBILE_BREAKPOINT = 900;
+
   function fit() {
     const stage = document.getElementById('room-stage');
     if (!stage) return;
-    const scale = Math.min(window.innerWidth / 1440, window.innerHeight / 900);
+    const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
+    // Desktop: contain-fit (the whole 1440x900 room visible, letterboxed if
+    // the viewport's aspect ratio doesn't match). Mobile: width-only
+    // "cover" fit - .hero-crop clips the now-taller-than-its-box stage to a
+    // short strip via overflow:hidden, and centers it (see that rule),
+    // which is what turns this into a vertically-centered crop of the
+    // room rather than the whole thing shrunk to fit a tiny box.
+    const scale = isMobile
+      ? window.innerWidth / 1440
+      : Math.min(window.innerWidth / 1440, window.innerHeight / 900);
     stage.style.transform = `scale(${scale})`;
   }
 
@@ -400,6 +462,25 @@ import '@fontsource/caveat/600.css';
     background: var(--room-bg);
     font-family: 'Hanken Grotesk', system-ui, sans-serif;
     color: var(--room-ink);
+  }
+
+  /* Desktop: fills .room-wrap exactly (100%/100%) and centers .stage inside
+     it - a transparent passthrough that changes nothing visually from
+     before this existed. Mobile (see the max-width: 900px query) is where
+     this actually does something: a fixed, short height + overflow:hidden
+     turns it into a cropped hero strip instead. */
+  .hero-crop {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .mobile-header,
+  .mobile-zone-list {
+    display: none;
   }
 
   .stage {
@@ -885,6 +966,143 @@ import '@fontsource/caveat/600.css';
   @media (prefers-reduced-motion: reduce) {
     .stage {
       transition: none;
+    }
+  }
+
+  /* ---------------------------------------------------------------------
+   * Small screens - a cropped hero strip of the room, then a plain
+   * vertical list of the six sections (per design/room-handoff/HANDOFF.md
+   * section 8's recommendation). Keep this breakpoint in sync with
+   * MOBILE_BREAKPOINT in the script above.
+   * --------------------------------------------------------------------- */
+  @media (max-width: 900px) {
+    .room-wrap {
+      /* Undoes the desktop fixed-fullscreen-overlay treatment - on mobile
+         this is normal in-flow page content (hero strip + a list you
+         scroll through), not a viewport-locked stage. */
+      position: static;
+      width: 100%;
+      height: auto;
+      min-height: 100vh;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      overflow: visible;
+    }
+
+    .mobile-header {
+      display: block;
+      padding: 28px 20px 6px;
+    }
+
+    .mobile-header h1 {
+      margin: 0 0 4px 0;
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-weight: 400;
+      font-size: 32px;
+      line-height: 1;
+      color: var(--room-ink-strong);
+    }
+
+    .mobile-header p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--room-ink-muted);
+    }
+
+    .hero-crop {
+      flex: none;
+      height: 220px;
+    }
+
+    /* The room itself is decorative on mobile (too small to tap
+       accurately) - the list below is the real navigation. */
+    .room-header,
+    .labels,
+    .spot {
+      display: none;
+    }
+
+    .mobile-zone-list {
+      display: flex;
+      flex-direction: column;
+      padding: 4px 20px 40px;
+    }
+
+    .mobile-zone-item {
+      all: unset;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      min-height: 44px;
+      padding: 16px 2px;
+      border-top: 1px solid var(--room-panel-line);
+      cursor: pointer;
+    }
+
+    .mobile-zone-list > .mobile-zone-item:first-child {
+      border-top: none;
+    }
+
+    .mz-object {
+      font-family: 'Caveat', 'Segoe Print', cursive;
+      font-weight: 600;
+      font-size: 18px;
+      line-height: 1;
+      color: var(--room-accent);
+    }
+
+    .mz-title {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-size: 22px;
+      line-height: 1.2;
+      color: var(--room-ink-strong);
+    }
+
+    .mobile-plain-link {
+      align-self: flex-start;
+      margin-top: 18px;
+      font-size: 14px;
+      color: var(--room-accent);
+      text-decoration: none;
+    }
+
+    .mobile-plain-link:hover,
+    .mobile-plain-link:focus-visible {
+      color: var(--room-accent-hover);
+    }
+
+    /* The card overlay lives outside .stage precisely so this works - see
+       the markup comment above #room-overlay. .room-wrap is no longer
+       `position: fixed` on mobile (it's normal page flow now), so the
+       overlay needs to bind to the real viewport itself instead of
+       inheriting that from its parent. */
+    .overlay {
+      position: fixed;
+    }
+
+    /* `[data-shape]` (attribute presence, not a specific value) rather than
+       plain `.zone` - every real .zone element always carries some
+       data-shape value, so this matches them all, but critically it also
+       *matches the same specificity* as the per-shape rules above
+       (.zone[data-shape='cork'] etc: one class + one attribute selector
+       each). A plain `.zone { width: 100% }` here loses to those on
+       specificity regardless of being later in the file - confirmed by
+       testing, cards kept their desktop pixel widths (300-460px) and
+       rounded corners inside a 390px viewport, with page content bleeding
+       through around them. Equal specificity + later in the cascade is
+       what actually wins here. */
+    .zone[data-shape] {
+      position: fixed;
+      inset: 0;
+      right: auto;
+      top: auto;
+      transform: none;
+      width: 100%;
+      height: 100%;
+      max-height: none;
+      border-radius: 0;
     }
   }
 </style>
