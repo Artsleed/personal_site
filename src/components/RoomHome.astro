@@ -297,12 +297,26 @@ import '@fontsource/caveat/600.css';
 
   let lastTrigger: HTMLElement | null = null;
 
+  // Keep in sync with --room-duration in the <style> block below.
+  const ANIMATION_MS = 180;
+
+  function prefersReducedMotion() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  // Guards against a stale close finishing after a newer open/close - e.g.
+  // close, then reopen before the close's delayed `hidden = true` fires,
+  // which would otherwise hide the freshly-reopened card out from under
+  // the user. Every open bumps this, invalidating any close still pending.
+  let closeGeneration = 0;
+
   function openZone(id: string, trigger?: HTMLElement) {
     const overlay = document.getElementById('room-overlay');
     const labels = document.getElementById('room-labels');
     if (!overlay) return;
     const target = overlay.querySelector<HTMLElement>(`.zone[data-zone="${id}"]`);
     if (!target) return;
+    closeGeneration++;
     overlay.querySelectorAll<HTMLElement>('.zone').forEach((el) => {
       el.hidden = el.dataset.zone !== id;
     });
@@ -316,17 +330,40 @@ import '@fontsource/caveat/600.css';
     // not just once back on page load, so it doesn't show what was playing
     // whenever the room happened to first render.
     if (id === 'music') loadNowPlaying();
+
+    // Adding `.is-open` in the same tick as removing `hidden` wouldn't
+    // animate anything - the browser needs to paint the closed state (set
+    // in CSS: opacity:0, translateY+8px) at least once before a class
+    // change can transition *from* it. One rAF is enough for that paint.
+    requestAnimationFrame(() => {
+      overlay.classList.add('is-open');
+      target.classList.add('is-open');
+    });
   }
 
   function closeZone() {
     const overlay = document.getElementById('room-overlay');
     const labels = document.getElementById('room-labels');
     if (!overlay || overlay.hidden) return;
-    overlay.hidden = true;
-    if (labels) labels.hidden = false;
     history.replaceState(null, '', location.pathname + location.search);
     lastTrigger?.focus();
     lastTrigger = null;
+
+    overlay.classList.remove('is-open');
+    overlay.querySelectorAll<HTMLElement>('.zone').forEach((el) => el.classList.remove('is-open'));
+
+    const myGeneration = ++closeGeneration;
+    const finish = () => {
+      if (myGeneration !== closeGeneration) return; // superseded by a newer open/close
+      overlay.hidden = true;
+      if (labels) labels.hidden = false;
+    };
+
+    if (prefersReducedMotion()) {
+      finish();
+    } else {
+      setTimeout(finish, ANIMATION_MS);
+    }
   }
 
   function openFromHash() {
@@ -445,6 +482,7 @@ import '@fontsource/caveat/600.css';
     --room-ink-body: #b5bfca;
     --room-panel: #111820;
     --room-panel-line: #263241;
+    --room-duration: 0.18s;
 
     /* Fixed full-viewport overlay, not width/height:100% of `main` - main is
        a flex item whose own height comes from flex-grow, and percentage
@@ -644,6 +682,18 @@ import '@fontsource/caveat/600.css';
     inset: 0;
     background: rgba(8, 11, 15, 0.62);
     cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--room-duration) ease;
+  }
+
+  /* .is-open is added a frame after `hidden` is removed (see openZone in
+     the script below) - removing `hidden` alone renders the card at this
+     closed/offset state first, so there's actually something for the
+     browser to transition *from* once .is-open lands. Closing reverses
+     the order: .is-open comes off first (plays the fade-out/8px-settle),
+     then `hidden` goes back on once the transition has had time to finish. */
+  .overlay.is-open .scrim {
+    opacity: 1;
   }
 
   .card-dock {
@@ -656,7 +706,6 @@ import '@fontsource/caveat/600.css';
     position: absolute;
     right: 80px;
     top: 50%;
-    transform: translateY(-50%);
     width: 400px;
     max-height: 780px;
     overflow-y: auto;
@@ -669,6 +718,17 @@ import '@fontsource/caveat/600.css';
     border: 1px solid var(--room-panel-line);
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
     pointer-events: auto;
+    opacity: 0;
+    /* -50% keeps it vertically centered (unchanged from before); the
+       extra +8px is the "quick... 8px rise" the design spec calls for -
+       it settles out to just translateY(-50%) once .is-open lands. */
+    transform: translateY(calc(-50% + 8px));
+    transition: opacity var(--room-duration) ease, transform var(--room-duration) ease;
+  }
+
+  .zone.is-open {
+    opacity: 1;
+    transform: translateY(-50%);
   }
 
   /* .zone{display:flex} above has equal specificity to a plain [hidden]
@@ -964,7 +1024,9 @@ import '@fontsource/caveat/600.css';
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .stage {
+    .stage,
+    .scrim,
+    .zone {
       transition: none;
     }
   }
@@ -1098,11 +1160,17 @@ import '@fontsource/caveat/600.css';
       inset: 0;
       right: auto;
       top: auto;
-      transform: none;
+      /* No vertical centering to preserve here (unlike desktop) - closed
+         state is just the same 8px rise on its own. */
+      transform: translateY(8px);
       width: 100%;
       height: 100%;
       max-height: none;
       border-radius: 0;
+    }
+
+    .zone[data-shape].is-open {
+      transform: translateY(0);
     }
   }
 </style>
