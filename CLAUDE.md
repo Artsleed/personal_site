@@ -16,7 +16,7 @@ This replaced an earlier "grand vision": a persistent three.js 3D room (`DeskSce
 
 ### How the room is built
 
-- **`room.svg`** is hand-edited after being copied from its original source (a design handoff package, not part of this repo) — see the comment block at the top of `RoomHome.astro` for exactly what was changed and why, before ever regenerating or replacing this file.
+- **`room.svg`** is hand-edited after being copied from its original design handoff (archived at `design/room-handoff/`, see that folder's own README for what's kept and why) — see the comment block at the top of `RoomHome.astro` for exactly what was changed and why, before ever regenerating or replacing this file.
 - **Hotspots, labels, arrows**: positioned with hardcoded pixel coordinates in the 1440×900 artboard space (measured directly off the rendered SVG, not guessed). `.stage` is scaled to fit the viewport via a JS-computed `transform: scale()` (see `fit()` in the component's script), not CSS `object-fit` — this keeps every hardcoded pixel coordinate correct at any window size.
 - **Zone cards**: each of the 6 `<section class="zone" data-zone="...">` blocks is shaped/sized differently per its object (`data-shape` attribute — cork strip, desk bezel, picture frame, cabinet wood-grain, bookshelf spine, thin frame + glow) rather than one generic box, on request. Open/close/hash-deep-link/focus-management logic is plain vanilla JS in the component's own `<script>` — see the "Click/keydown are bound once per real browser session" comment there for why listeners are bound at module scope, not inside `astro:page-load`.
 - **`bare` prop on `Layout.astro`**: the room needs to own the entire viewport (its header/nav are baked into the 1440×900 stage, not `Layout`'s normal chrome). Pages that pass `bare` get no header/footer from `Layout` and `main` loses its padding/width cap. Only `index.astro` uses this.
@@ -65,6 +65,6 @@ npm run new-project -- "Title" "description"     # scaffolds src/content/project
 
 ## Not done yet
 
-- **Small screens.** The room is desktop-only right now — no responsive treatment. Planned approach (per the original design handoff, not yet built): a cropped hero-image strip of the room, then a plain vertical list of the six sections below it, opening the same cards as full-screen sheets.
+- **Small screens.** The room is desktop-only right now — no responsive treatment. Planned approach (see `design/room-handoff/HANDOFF.md` section 8, not yet built): a cropped hero-image strip of the room, then a plain vertical list of the six sections below it, opening the same cards as full-screen sheets.
 - **Card open/close animation.** Currently instant (no transition), which was explicitly fine for a first pass but is a listed "nice to have."
 - **Meta tags / OG image** for link previews, and a Lighthouse pass.

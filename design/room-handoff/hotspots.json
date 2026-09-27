@@ -1,0 +1,198 @@
+{
+  "artboard": {
+    "width": 1440,
+    "height": 900,
+    "note": "All px values are in the 1440x900 artboard space; the SVG scales with viewBox, so position overlays in % (hotspotPct) or scale with the same transform."
+  },
+  "zones": {
+    "projects": {
+      "object": "Corkboard with sticky notes",
+      "title": "Projects",
+      "route": "/projects",
+      "hotspotPx": {
+        "x": 559,
+        "y": 225,
+        "w": 249,
+        "h": 157
+      },
+      "hotspotPct": {
+        "left": 38.819,
+        "top": 25.0,
+        "width": 17.292,
+        "height": 17.444
+      },
+      "label": {
+        "text": "projects",
+        "left": 560,
+        "top": 172,
+        "arrowFrom": [
+          618,
+          202
+        ],
+        "arrowTo": [
+          682,
+          228
+        ],
+        "arrowPath": "M618.0 202.0 Q655.2 202.2 682.0 228.0 M673.4 225.2 L682.0 228.0 L678.9 219.6"
+      }
+    },
+    "blog": {
+      "object": "ALEX desk, monitor, banker's lamp",
+      "title": "Writing",
+      "route": "/blog",
+      "hotspotPx": {
+        "x": 549,
+        "y": 388,
+        "w": 285,
+        "h": 274
+      },
+      "hotspotPct": {
+        "left": 38.125,
+        "top": 43.111,
+        "width": 19.792,
+        "height": 30.444
+      },
+      "label": {
+        "text": "writing",
+        "left": 668,
+        "top": 622,
+        "arrowFrom": [
+          700,
+          620
+        ],
+        "arrowTo": [
+          712,
+          540
+        ],
+        "arrowPath": "M700.0 620.0 Q690.0 577.6 712.0 540.0 M711.3 549.0 L712.0 540.0 L704.5 545.0"
+      }
+    },
+    "about": {
+      "object": "Traditional bookcase (left wall)",
+      "title": "About",
+      "route": "/about",
+      "hotspotPx": {
+        "x": 258,
+        "y": 198,
+        "w": 208,
+        "h": 532
+      },
+      "hotspotPct": {
+        "left": 17.917,
+        "top": 22.0,
+        "width": 14.444,
+        "height": 59.111
+      },
+      "label": {
+        "text": "about me",
+        "left": 296,
+        "top": 768,
+        "arrowFrom": [
+          326,
+          764
+        ],
+        "arrowTo": [
+          348,
+          706
+        ],
+        "arrowPath": "M326.0 764.0 Q325.4 730.6 348.0 706.0 M345.4 714.6 L348.0 706.0 L339.6 709.3"
+      }
+    },
+    "resume": {
+      "object": "Framed page under a picture light (left wall)",
+      "title": "Resume",
+      "route": "/resume",
+      "data": "PDF in /public",
+      "hotspotPx": {
+        "x": 122,
+        "y": 198,
+        "w": 148,
+        "h": 251
+      },
+      "hotspotPct": {
+        "left": 8.472,
+        "top": 22.0,
+        "width": 10.278,
+        "height": 27.889
+      },
+      "label": {
+        "text": "resume",
+        "left": 118,
+        "top": 520,
+        "arrowFrom": [
+          150,
+          518
+        ],
+        "arrowTo": [
+          184,
+          446
+        ],
+        "arrowPath": "M150.0 518.0 Q152.6 475.2 184.0 446.0 M180.7 454.4 L184.0 446.0 L175.4 448.7"
+      }
+    },
+    "films": {
+      "object": "Two framed posters (right wall)",
+      "title": "Films",
+      "route": "/films",
+      "data": "Letterboxd RSS (user Artsleed)",
+      "hotspotPx": {
+        "x": 1106,
+        "y": 162,
+        "w": 264,
+        "h": 309
+      },
+      "hotspotPct": {
+        "left": 76.806,
+        "top": 18.0,
+        "width": 18.333,
+        "height": 34.333
+      },
+      "label": {
+        "text": "films I\u2019ve watched",
+        "left": 1096,
+        "top": 116,
+        "arrowFrom": [
+          1236,
+          146
+        ],
+        "arrowTo": [
+          1272,
+          194
+        ],
+        "arrowPath": "M1236.0 146.0 Q1263.6 162.8 1272.0 194.0 M1266.1 187.2 L1272.0 194.0 L1273.7 185.2"
+      }
+    },
+    "music": {
+      "object": "Cabinet + turntable + bookshelf speaker",
+      "title": "On rotation",
+      "route": "/music",
+      "data": "Spotify now-playing / recently-played",
+      "hotspotPx": {
+        "x": 981,
+        "y": 440,
+        "w": 300,
+        "h": 366
+      },
+      "hotspotPct": {
+        "left": 68.125,
+        "top": 48.889,
+        "width": 20.833,
+        "height": 40.667
+      },
+      "label": {
+        "text": "on rotation",
+        "left": 1196,
+        "top": 770,
+        "arrowFrom": [
+          1226,
+          766
+        ],
+        "arrowTo": [
+          1150,
+          640
+        ],
+        "arrowPath": "M1226.0 766.0 Q1162.8 718.2 1150.0 640.0 M1155.2 647.4 L1150.0 640.0 L1147.4 648.6"
+      }
+    }
+  }
+}
