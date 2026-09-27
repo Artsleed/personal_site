@@ -96,13 +96,21 @@ const projects = (await getCollection('projects')).sort(
     color: var(--color-label);
   }
 
-  h2 {
+  .project h2 {
     font-size: 1.15rem;
     margin: 0 0 0.5rem 0;
     transition: color var(--duration-fast) ease;
   }
 
-  p {
+  /* Scoped to `.project p`, not a bare `p` - a bare element selector here
+     silently outranks the global `.kicker` class rule once Astro appends
+     its scoping attribute (attribute selector = class-level specificity),
+     so the page's own kicker/dek text was picking up this muted card-body
+     color instead of the accent color every other page's kicker uses. This
+     exact class of bug is already documented in CLAUDE.md - check any page
+     with an inconsistent kicker/heading color against this before assuming
+     the shared global rule itself is broken. */
+  .project p {
     margin: 0;
     color: var(--color-text-muted);
     font-size: 0.9rem;

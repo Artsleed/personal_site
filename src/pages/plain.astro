@@ -1,0 +1,79 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { roomZones } from '../data/room-zones';
+
+const title = 'Plain version';
+---
+
+<Layout title={title}>
+  <div class="plain">
+    <p class="kicker">No room required</p>
+    <h1 class="page-title">{title}</h1>
+    <p class="dek">
+      Everything on this site, as a plain list of links - no illustration, no hotspots, just
+      text. The <a href="/">room</a> has the same six sections, presented as a space instead
+      of a list.
+    </p>
+
+    <ul class="section-list">
+      {roomZones.map((zone) => (
+        <li>
+          <a href={zone.route}>{zone.title}</a>
+          <p>{zone.body}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</Layout>
+
+<style>
+  .plain {
+    max-width: var(--content-width);
+  }
+
+  .dek {
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-4) 0;
+  }
+
+  .dek a {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
+
+  .section-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .section-list li {
+    padding: var(--space-3) 0;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .section-list li:first-child {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .section-list a {
+    font-family: var(--font-serif);
+    font-size: 1.3rem;
+    color: var(--color-heading);
+    text-decoration: none;
+    transition: color var(--duration-fast) ease;
+  }
+
+  .section-list a:hover {
+    color: var(--color-accent);
+  }
+
+  .section-list p {
+    margin: 0.3rem 0 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.92rem;
+  }
+</style>

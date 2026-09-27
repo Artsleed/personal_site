@@ -1,0 +1,188 @@
+---
+// SSR (not the site's default static/prerendered) since this needs a fresh
+// fetch of the Letterboxd RSS feed on each visit, not whatever was live at
+// the last build/deploy.
+export const prerender = false;
+
+import Layout from '../layouts/Layout.astro';
+import { fetchLetterboxdFilms, renderStars } from '../lib/letterboxd';
+
+const title = 'Films';
+
+let films: Awaited<ReturnType<typeof fetchLetterboxdFilms>> = [];
+let loadError = false;
+try {
+  films = await fetchLetterboxdFilms();
+} catch {
+  loadError = true;
+}
+
+const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+---
+
+<Layout title="Films">
+  <div class="films">
+    <p class="kicker">Watching</p>
+    <h1 class="page-title">{title}</h1>
+    <p class="dek">
+      Logged on Letterboxd as things get watched - this diary is pulled live from there, newest
+      first.
+    </p>
+
+    {loadError && (
+      <p class="error">Couldn't reach Letterboxd just now - try again in a bit, or see the real thing below.</p>
+    )}
+
+    {films.length > 0 && (
+      <div class="full-bleed grid-breakout">
+        <div class="film-grid">
+          {films.map((film, i) => (
+            <a
+              class="film"
+              href={film.link}
+              target="_blank"
+              rel="noopener"
+              data-reveal
+              style={`transition-delay: ${i * 0.04}s`}
+            >
+              <div class="poster-wrap">
+                {film.poster && <img src={film.poster} alt="" loading="lazy" />}
+              </div>
+              <div class="meta">
+                <span class="film-title">{film.title}</span>
+                <span class="film-sub">
+                  {film.year}
+                  {film.rating != null && ` · ${renderStars(film.rating)}`}
+                </span>
+                {film.watchedDate && (
+                  <span class="film-date">
+                    {dateFormatter.format(new Date(film.watchedDate))}
+                    {film.rewatch && ' · rewatch'}
+                  </span>
+                )}
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <a href="https://letterboxd.com/artsleed/" class="btn" target="_blank" rel="noopener">
+      View my full Letterboxd &rarr;
+    </a>
+  </div>
+</Layout>
+
+<style>
+  .films {
+    max-width: var(--page-width);
+  }
+
+  .dek {
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-4) 0;
+  }
+
+  .error {
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-3) 0;
+  }
+
+  .grid-breakout {
+    margin-bottom: var(--space-4);
+  }
+
+  .film-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--space-3);
+    padding: 0 var(--space-5);
+  }
+
+  @media (max-width: 960px) {
+    .film-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .film-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .film-grid {
+      grid-template-columns: repeat(2, 1fr);
+      padding: 0 var(--space-3);
+    }
+  }
+
+  .film {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .poster-wrap {
+    aspect-ratio: 2 / 3;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    transition: border-color var(--duration-fast) ease, transform var(--duration-fast) ease;
+  }
+
+  .film:hover .poster-wrap,
+  .film:focus-visible .poster-wrap {
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+  }
+
+  .poster-wrap img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .meta {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .film-title {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--color-heading);
+    line-height: 1.3;
+  }
+
+  .film-sub,
+  .film-date {
+    font-size: 0.76rem;
+    color: var(--color-text-muted);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 22px;
+    border-radius: 999px;
+    background: transparent;
+    border: 1px solid var(--color-border-strong);
+    color: var(--color-heading);
+    font-weight: 500;
+    font-size: 15px;
+    text-decoration: none;
+    transition: border-color var(--duration-fast) ease, color var(--duration-fast) ease;
+  }
+
+  .btn:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+</style>

@@ -5,21 +5,14 @@ import Analytics from '@vercel/analytics/astro'
 
 interface Props {
   title: string;
-  hideGrid?: boolean;
+  // The homepage room is a full-viewport immersive stage with its own header
+  // and nav baked in (see RoomHome.astro) - `bare` suppresses Layout's own
+  // header/footer chrome and main's padding/width cap so the room can own
+  // the whole page instead of sitting inside it.
+  bare?: boolean;
 }
 
-const { title, hideGrid = false } = Astro.props;
-
-const navLinks = [
-  { href: '/about', label: 'about' },
-  { href: '/now', label: 'now' },
-  { href: '/blog', label: 'blog' },
-  { href: '/projects', label: 'projects' },
-  { href: '/resume', label: 'resume' },
-];
-
-const path = Astro.url.pathname;
-const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
+const { title, bare = false } = Astro.props;
 ---
 
 <!doctype html>
@@ -32,35 +25,37 @@ const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
     <title>{title} | Nathaniel Felsky-Deelstra</title>
     <ClientRouter />
   </head>
-  <body class:list={{ 'no-grid': hideGrid }}>
-    <header>
-      <nav>
-        <a href="/" class="name">Nathaniel Felsky-Deelstra</a>
-        <div class="links">
-          {navLinks.map((link) => (
-            <a href={link.href} class:list={{ active: isActive(link.href) }}>{link.label}</a>
-          ))}
-        </div>
-      </nav>
-    </header>
+  <body class:list={{ bare }}>
+    {!bare && (
+      <header>
+        <nav>
+          <div class="brand">
+            <span class="name">Nathaniel Felsky-Deelstra</span>
+            <a href="/" class="room-back">&larr; Back to the room</a>
+          </div>
+        </nav>
+      </header>
+    )}
 
-    <main>
+    <main class:list={{ bare }}>
       <slot />
     </main>
 
-    <footer>
-      <p>
-        <a href="mailto:nathanielfd5@gmail.com" class="icon-link" aria-label="Email">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18v12H3z"/><path d="m3 7 9 6 9-6"/></svg>
-        </a>
-        <a href="https://www.linkedin.com/in/nathaniel-felsky-deelstra/" class="icon-link" aria-label="LinkedIn">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.94 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM3.3 8.75h3.4V21H3.3zM9.5 8.75h3.26v1.68h.05c.45-.86 1.56-1.76 3.22-1.76 3.44 0 4.08 2.27 4.08 5.22V21h-3.4v-6.4c0-1.53-.03-3.49-2.13-3.49-2.13 0-2.46 1.66-2.46 3.38V21H9.5z"/></svg>
-        </a>
-        <a href="https://github.com/Artsleed" class="icon-link" aria-label="GitHub">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.15-1.11-1.46-1.11-1.46-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.56-1.11-4.56-4.93 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.3 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.83-2.34 4.68-4.57 4.92.36.31.68.92.68 1.85v2.75c0 .26.18.58.69.48A10 10 0 0 0 12 2z"/></svg>
-        </a>
-      </p>
-    </footer>
+    {!bare && (
+      <footer>
+        <p>
+          <a href="mailto:nathanielfd5@gmail.com" class="icon-link" aria-label="Email">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18v12H3z"/><path d="m3 7 9 6 9-6"/></svg>
+          </a>
+          <a href="https://www.linkedin.com/in/nathaniel-felsky-deelstra/" class="icon-link" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.94 5a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM3.3 8.75h3.4V21H3.3zM9.5 8.75h3.26v1.68h.05c.45-.86 1.56-1.76 3.22-1.76 3.44 0 4.08 2.27 4.08 5.22V21h-3.4v-6.4c0-1.53-.03-3.49-2.13-3.49-2.13 0-2.46 1.66-2.46 3.38V21H9.5z"/></svg>
+          </a>
+          <a href="https://github.com/Artsleed" class="icon-link" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.15-1.11-1.46-1.11-1.46-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.56-1.11-4.56-4.93 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.3 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.83-2.34 4.68-4.57 4.92.36.31.68.92.68 1.85v2.75c0 .26.18.58.69.48A10 10 0 0 0 12 2z"/></svg>
+          </a>
+        </p>
+      </footer>
+    )}
   </body>
 </html>
 
@@ -87,44 +82,51 @@ const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
   nav {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
     align-items: center;
     gap: var(--space-1) var(--space-3);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
   }
 
   nav .name {
     font-family: var(--font-serif);
     font-size: 1.15rem;
-    font-weight: 500;
+    font-weight: 400;
     white-space: nowrap;
-    text-decoration: none;
     color: var(--color-heading);
   }
 
-  nav .links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-1) var(--space-3);
-  }
-
-  nav .links a {
-    position: relative;
+  /* The only way to reach another section from an inner page - other pages
+     are deliberately not directly linked from here (see RoomHome.astro's
+     nav row for that), so this is sized/styled as the primary action in
+     the header, not a quiet utility link. Dashed border echoes the room's
+     own hotspot hover outline - the same "there's a portal here" cue. */
+  .room-back {
     display: inline-flex;
-    text-decoration: none;
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-    padding: 0.2rem 0.05rem;
-    border-bottom: 1px solid transparent;
-    transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease;
-  }
-
-  nav .links a:hover {
-    color: var(--color-heading);
-  }
-
-  nav .links a.active {
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-script);
+    font-weight: 600;
+    font-size: 1.3rem;
+    line-height: 1;
     color: var(--color-accent);
-    border-color: var(--color-accent);
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 0.45rem 1.1rem;
+    border-radius: 999px;
+    border: 1.5px dashed var(--color-accent);
+    transition: background-color var(--duration-fast) ease, color var(--duration-fast) ease, border-color var(--duration-fast) ease;
+  }
+
+  .room-back:hover,
+  .room-back:focus-visible {
+    color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+    background-color: var(--color-accent-soft);
   }
 
   main {
@@ -134,6 +136,12 @@ const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
     max-width: var(--page-width);
     width: 100%;
     padding: var(--space-4) var(--space-5);
+  }
+
+  main.bare {
+    max-width: none;
+    padding: 0;
+    display: flex;
   }
 
   footer {
@@ -179,6 +187,11 @@ const isActive = (href: string) => path === href || path.startsWith(`${href}/`);
   @media (max-width: 480px) {
     header {
       padding: var(--space-2);
+    }
+
+    .room-back {
+      font-size: 1.05rem;
+      padding: 0.4rem 0.85rem;
     }
 
     main {

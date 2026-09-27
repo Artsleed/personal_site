@@ -70,14 +70,21 @@ const posts = (await getCollection('blog')).sort(
     color: var(--color-accent);
   }
 
-  h2 {
+  .post h2 {
     font-size: 1.35rem;
-    font-weight: 500;
+    /* Instrument Serif only ships weight 400 - see global.css's h1/h2/h3
+       comment. This page's own scoped h2 rule was overriding that back to
+       500 (invalid weight, triggers synthetic-bold) purely by being a
+       same-specificity-but-later-in-source-order local rule. */
+    font-weight: 400;
     margin: 0.4rem 0 0.4rem 0;
     transition: color var(--duration-fast) ease;
   }
 
-  p {
+  /* Scoped to `.post p`, not a bare `p` - see the matching note in
+     projects.astro. A bare element selector here was overriding the
+     global `.kicker` rule's accent color with this muted body color. */
+  .post p {
     margin: 0;
     color: var(--color-text-muted);
     font-size: 0.92rem;

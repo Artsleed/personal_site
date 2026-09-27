@@ -1,0 +1,890 @@
+---
+// The homepage room: a static illustrated bedroom (room.svg) with clickable
+// hotspots over each object. Ported from room-handoff/prototype/index.html -
+// see HANDOFF.md in that package for the full spec. This component owns the
+// whole viewport (rendered via Layout's `bare` prop) since the room's header
+// and nav are baked into its own 1440x900 stage, not Layout's normal chrome.
+//
+// Step 2 of the build order: zone cards (click a hotspot/nav item to open,
+// Esc/scrim/back to close, #hash deep links). Projects and Writing pull
+// real entries from the content collections (list items link straight to
+// each item's own page, per the "click a project, get its detail page"
+// model); Films pulls real Letterboxd posters client-side (see loadPosters()
+// below - same fetch populates both the two frame posters and the Films
+// card's grid). On rotation stays placeholder until Spotify is wired up.
+import { getCollection } from 'astro:content';
+import { roomZones } from '../data/room-zones';
+import roomSvgRaw from '../assets/room/room.svg?raw';
+
+// room.svg was hand-edited twice after copying it from room-handoff/design/
+// - both fixes need reapplying if it's ever regenerated from
+// tools/gen2.py + gen3.py in the handoff package:
+// 1. The 4 `style="mix-blend-mode:screen"` glow/pool ellipses (the lamp's
+//    warm light, the resume picture-light) were stripped. Confirmed via a
+//    scaled side-by-side render: at the stage's default 1440x900 size those
+//    blended cleanly, but once .stage is scaled via CSS `transform` (any
+//    viewport that isn't exactly 1440x900 - i.e. almost every real one),
+//    Chromium rasterizes each blend-mode layer as its own compositing
+//    surface, and that surface's rectangular bounding box became a visible
+//    soft-edged seam over the lamp shade and the curtain behind it. Plain
+//    alpha-blended glow (no blend mode) doesn't hit this and still reads as
+//    a warm glow.
+// 2. A small stray `<g>` right before the lamp's own group (fill #0f3f28, a
+//    ~11-unit-wide cap shape + a tiny brass rim rect) was deleted. It sat
+//    at the shade's right edge, overlapping the curtain, at a different
+//    scale/skew than the real shade - looked like a disconnected extra
+//    panel, not part of the lamp. Confirmed as a genuine orphan (not part
+//    of the shade's silhouette) by toggling its group's display:none first
+//    and checking no gap was left behind before deleting it from source.
+
+const recentProjects = (await getCollection('projects'))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 4);
+
+const recentPosts = (await getCollection('blog'))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+
+const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+// Imported here (JS-side), not as a CSS @import inside the <style> block
+// below - fontsource's CSS references its own .woff/.woff2 files with
+// relative paths that only resolve correctly through Vite's module graph
+// when imported this way. A plain `@import` inside an Astro scoped <style>
+// block 404s on those font files (confirmed - see room-handoff transition
+// notes), even though the identical `@import` syntax works fine in
+// global.css, because that file is itself a real Vite-resolved module
+// while a component's inline <style> content isn't processed the same way.
+import '@fontsource/instrument-serif/400.css';
+import '@fontsource/hanken-grotesk/400.css';
+import '@fontsource/hanken-grotesk/500.css';
+import '@fontsource/hanken-grotesk/600.css';
+import '@fontsource/caveat/500.css';
+import '@fontsource/caveat/600.css';
+---
+
+<div class="room-wrap">
+  <div class="stage" id="room-stage">
+    <div class="scene" set:html={roomSvgRaw} />
+
+    <!--
+      Real Letterboxd posters, overlaid on the two illustrated poster frames
+      rather than baked into room.svg (which is static art). Populated
+      client-side from /api/letterboxd - see the script below - and left
+      blank (the illustrated art underneath shows through) if the fetch
+      fails or a poster isn't available yet.
+
+      The frames themselves are true perspective trapezoids in room.svg
+      (the room's camera is angled, not straight-on - measured their exact
+      corners off the rendered SVG via elementsFromPoint), not plain
+      rectangles, and they're much narrower than a real poster's ~2:3
+      ratio (frame2 here is about 0.46:1, a poster is 0.67:1). A first pass
+      used object-fit:cover sized to the frame's own bounding box: it
+      didn't follow the frame's tilt at all (looked like a straight photo
+      glued in front of a crooked frame). A second pass added clip-path to
+      fix the tilt, and widened the box to a natural 2:3 ratio so cover
+      wouldn't crop as hard - but cover covering a box *narrower* than the
+      image's own ratio is *always* height-constrained (the math: at
+      matching height, the poster's natural cover-width is fixed by its own
+      aspect ratio, independent of how wide a box you give it), so no
+      amount of widening the box actually changes how much width gets
+      cropped - full title-width and full frame-height simply cannot both
+      fit via cropping alone on a frame this narrow. Fixed by dropping the
+      crop entirely: object-fit:fill stretches the poster to exactly match
+      each frame's own bounding box (width and height independently, no
+      aspect-ratio lock), so the whole poster - full title included, on
+      whichever film is showing - is always visible, at the cost of a
+      slight horizontal squeeze that reads fine at this size. clip-path
+      still does the same job as before, trimming that stretched rectangle
+      down to a frame's exact tilted corners (as % of this box).
+
+      That box was originally the innermost "art" polygon room.svg draws
+      (inside its own cream mat + grey lip, atop the small poster
+      illustration it's replacing), leaving the full mat visible as a gap
+      around the real photo - correct in principle but made the photo read
+      small, especially frame1 (the farther, smaller one). Sized up toward
+      the mat's own *outer* corners (right up against the black frame
+      polygon) to close most of that gap - but going all the way out to
+      the mat's exact edge read as odd with zero breathing room at all, so
+      each box is a 60% blend between the two measured polygons (art edge
+      to mat edge) rather than either extreme: most of the gap closed, a
+      thin, even mat border still visible around the photo.
+    -->
+    <img
+      id="poster-0"
+      class="poster-real"
+      alt=""
+      style="left:1117.9px; top:234.2px; width:67.5px; height:182.2px; clip-path: polygon(100% 100%, 0% 95.5%, 0% 10.0%, 100% 0%)"
+    />
+    <img
+      id="poster-1"
+      class="poster-real"
+      alt=""
+      style="left:1218.6px; top:185.0px; width:122.4px; height:264.4px; clip-path: polygon(100% 100%, 0% 93.3%, 0% 13.1%, 100% 0%)"
+    />
+
+    <div class="labels" id="room-labels">
+      <svg class="label-arrows" width="1440" height="900" viewBox="0 0 1440 900" aria-hidden="true">
+        {roomZones.map((zone) => (
+          <path d={zone.label.arrowPath} class="ink" />
+        ))}
+      </svg>
+      {roomZones.map((zone) => (
+        <div class="hand" style={`left:${zone.label.left}px; top:${zone.label.top}px`}>
+          {zone.label.text}
+        </div>
+      ))}
+    </div>
+
+    {roomZones.map((zone) => (
+      <button
+        class="spot"
+        type="button"
+        aria-label={zone.ariaLabel}
+        data-go={zone.id}
+        style={`left:${zone.hotspot.x}px; top:${zone.hotspot.y}px; width:${zone.hotspot.w}px; height:${zone.hotspot.h}px`}
+      ></button>
+    ))}
+
+    <header class="room-header">
+      <div class="who">
+        <h1>Nathaniel</h1>
+        <p>Come in. Everything on the site lives somewhere in this room.</p>
+      </div>
+      <nav aria-label="Sections">
+        {roomZones.map((zone) => (
+          <a class="navb" href={zone.route}>{zone.navLabel}</a>
+        ))}
+        <a href="/plain" class="plain">Plain version</a>
+      </nav>
+    </header>
+
+    <div class="overlay" id="room-overlay" hidden>
+      <button class="scrim" type="button" aria-label="Back to the room" data-back></button>
+      <div class="card-dock">
+        {roomZones.map((zone) => (
+          <section class="zone" data-zone={zone.id} data-shape={zone.shape} hidden>
+            <button class="back" type="button" data-back>&larr; Back to the room</button>
+
+            <div class="zone-head">
+              <p class="eyebrow">{zone.object}</p>
+              <h2>{zone.title}</h2>
+            </div>
+
+            <p class="zone-body">{zone.body}</p>
+
+            {zone.id === 'projects' && (
+              <div class="zone-list">
+                {recentProjects.map((project) => (
+                  <a class="zone-list-row" href={`/projects/${project.id}`}>
+                    <span class="row-title">{project.data.title}</span>
+                    <span class="row-meta">{project.data.stack}</span>
+                  </a>
+                ))}
+              </div>
+            )}
+
+            {zone.id === 'blog' && (
+              <div class="zone-list">
+                {recentPosts.map((post) => (
+                  <a class="zone-list-row" href={`/blog/${post.id}`}>
+                    <span class="row-title">{post.data.title}</span>
+                    <span class="row-meta">{dateFormatter.format(post.data.date)}</span>
+                  </a>
+                ))}
+              </div>
+            )}
+
+            {zone.id === 'films' && (
+              <div class="poster-grid">
+                {[0, 1, 2, 3].map((i) => (
+                  <div class="poster-slot">
+                    <img class="card-poster" id={`card-poster-${i}`} alt="" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {zone.id === 'music' && (
+              <a class="now-playing" id="now-playing-link" href="#" target="_blank" rel="noopener">
+                <div class="now-art-wrap">
+                  <img id="now-art" alt="" />
+                </div>
+                <div class="now-meta">
+                  <span class="row-title" id="now-title">[Track name]</span>
+                  <span class="row-meta" id="now-artist">[Artist] &middot; now playing</span>
+                </div>
+              </a>
+            )}
+
+            <a class="cta" href={zone.route}>{zone.cta} &rarr;</a>
+          </section>
+        ))}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function fit() {
+    const stage = document.getElementById('room-stage');
+    if (!stage) return;
+    const scale = Math.min(window.innerWidth / 1440, window.innerHeight / 900);
+    stage.style.transform = `scale(${scale})`;
+  }
+
+  let lastTrigger: HTMLElement | null = null;
+
+  function openZone(id: string, trigger?: HTMLElement) {
+    const overlay = document.getElementById('room-overlay');
+    const labels = document.getElementById('room-labels');
+    if (!overlay) return;
+    const target = overlay.querySelector<HTMLElement>(`.zone[data-zone="${id}"]`);
+    if (!target) return;
+    overlay.querySelectorAll<HTMLElement>('.zone').forEach((el) => {
+      el.hidden = el.dataset.zone !== id;
+    });
+    overlay.hidden = false;
+    if (labels) labels.hidden = true;
+    history.replaceState(null, '', '#' + id);
+    lastTrigger = trigger ?? lastTrigger;
+    target.querySelector<HTMLElement>('.back')?.focus();
+    // "Now playing" goes stale fast (a song is a few minutes), unlike the
+    // posters/projects/writing lists - refresh it right as the card opens,
+    // not just once back on page load, so it doesn't show what was playing
+    // whenever the room happened to first render.
+    if (id === 'music') loadNowPlaying();
+  }
+
+  function closeZone() {
+    const overlay = document.getElementById('room-overlay');
+    const labels = document.getElementById('room-labels');
+    if (!overlay || overlay.hidden) return;
+    overlay.hidden = true;
+    if (labels) labels.hidden = false;
+    history.replaceState(null, '', location.pathname + location.search);
+    lastTrigger?.focus();
+    lastTrigger = null;
+  }
+
+  function openFromHash() {
+    const id = location.hash.slice(1);
+    if (!id) return;
+    const overlay = document.getElementById('room-overlay');
+    if (overlay?.querySelector(`.zone[data-zone="${id}"]`)) {
+      openZone(id);
+    }
+  }
+
+  // Click/keydown are bound once per real browser session (top-level module
+  // code, not inside astro:page-load) - same reasoning as fit() below: both
+  // handlers re-query the current DOM on every event rather than closing
+  // over stale references, so a single binding stays correct across
+  // client-side navigation away from and back to the homepage without
+  // stacking duplicate listeners (see CLAUDE.md's ClientRouter gotcha).
+  document.addEventListener('click', (e) => {
+    const go = (e.target as HTMLElement).closest<HTMLElement>('[data-go]');
+    if (go) {
+      openZone(go.dataset.go!, go);
+      return;
+    }
+    if ((e.target as HTMLElement).closest('[data-back]')) closeZone();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const overlay = document.getElementById('room-overlay');
+    if (overlay && !overlay.hidden) closeZone();
+  });
+
+  // One fetch populates both the two frame posters (the room's own
+  // illustration) and the Films card's 4-poster grid - a.ltrbxd.com allows
+  // direct hotlinking (confirmed), so `poster` is a plain CDN url, not a
+  // server-proxied data: URI. Left untouched (the room's own illustrated
+  // art / the card's dashed placeholder slots) if the fetch fails or a
+  // given film has no poster.
+  async function loadPosters() {
+    try {
+      const res = await fetch('/api/letterboxd');
+      if (!res.ok) return;
+      const data = await res.json();
+      const films = Array.isArray(data.films) ? data.films : [];
+
+      const setImg = (img: HTMLImageElement | null, film: any) => {
+        if (!img || !film || !film.poster) return;
+        img.alt = film.year ? `${film.title} (${film.year})` : film.title ?? '';
+        img.addEventListener('load', () => img.classList.add('is-loaded'), { once: true });
+        img.src = film.poster;
+      };
+
+      [0, 1].forEach((i) => {
+        setImg(document.getElementById(`poster-${i}`) as HTMLImageElement | null, films[i]);
+      });
+      [0, 1, 2, 3].forEach((i) => {
+        setImg(document.getElementById(`card-poster-${i}`) as HTMLImageElement | null, films[i]);
+      });
+    } catch {
+      // leave the illustrated placeholder art / card placeholders showing
+    }
+  }
+
+  // Populates the On rotation card from /api/now-playing (currently
+  // playing, falling back to last played - see that route). Called on
+  // page load like loadPosters(), and again every time the music card
+  // opens (see openZone above), since unlike the other cards' data this
+  // one is realistically stale within minutes. Left as the placeholder
+  // text/art if the fetch fails or Spotify has nothing to report.
+  async function loadNowPlaying() {
+    try {
+      const res = await fetch('/api/now-playing');
+      if (!res.ok) return;
+      const track = await res.json();
+      if (!track || track.error || !track.title) return;
+
+      const art = document.getElementById('now-art') as HTMLImageElement | null;
+      const titleEl = document.getElementById('now-title');
+      const artistEl = document.getElementById('now-artist');
+      const link = document.getElementById('now-playing-link') as HTMLAnchorElement | null;
+
+      if (titleEl) titleEl.textContent = track.title;
+      if (artistEl) artistEl.textContent = `${track.artist} · ${track.isPlaying ? 'now playing' : 'last played'}`;
+      if (link && track.songUrl) link.href = track.songUrl;
+      if (art && track.albumArt) {
+        art.alt = `${track.title} — ${track.album}`;
+        art.addEventListener('load', () => art.classList.add('is-loaded'), { once: true });
+        art.src = track.albumArt;
+      }
+    } catch {
+      // leave the placeholder text/art showing
+    }
+  }
+
+  // fit() and the hash check both need to re-run every time the homepage is
+  // (re)loaded via client-side navigation, not just once per session.
+  document.addEventListener('astro:page-load', () => {
+    fit();
+    openFromHash();
+    loadPosters();
+    loadNowPlaying();
+  });
+  window.addEventListener('resize', fit);
+</script>
+
+<style>
+  .room-wrap {
+    --room-bg: #0d1217;
+    --room-ink: #e3ddd2;
+    --room-ink-strong: #efe8dc;
+    --room-ink-muted: #8e9aa6;
+    --room-accent: #ee8a45;
+    --room-accent-hover: #f4a56b;
+    --room-accent-ink: #171310;
+    --room-hand: #d8cbb3;
+    --room-ink-body: #b5bfca;
+    --room-panel: #111820;
+    --room-panel-line: #263241;
+
+    /* Fixed full-viewport overlay, not width/height:100% of `main` - main is
+       a flex item whose own height comes from flex-grow, and percentage
+       heights on descendants of that don't reliably resolve against it
+       (confirmed: .room-wrap collapsed to the stage's own 900px content
+       height instead of the viewport, leaving body's background - the old
+       site's grid pattern - visible above/below it at any non-1440x900
+       viewport). `position: fixed` sidesteps that entirely. */
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: var(--room-bg);
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
+    color: var(--room-ink);
+  }
+
+  .stage {
+    position: relative;
+    flex: none;
+    width: 1440px;
+    height: 900px;
+    background: var(--room-bg);
+    transform-origin: center center;
+  }
+
+  .scene {
+    position: absolute;
+    inset: 0;
+    line-height: 0;
+  }
+
+  .scene :global(svg) {
+    display: block;
+    width: 1440px;
+    height: 900px;
+  }
+
+  .poster-real {
+    position: absolute;
+    /* Deliberately `fill`, not `cover` - see the markup comment above. These
+       frames are narrower than a real poster's aspect ratio, so cropping
+       to cover them always cuts into the title width. Stretching instead
+       guarantees the whole poster (title included) stays visible. */
+    object-fit: fill;
+    opacity: 0;
+    filter: brightness(0.94) saturate(0.96);
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+
+  .poster-real.is-loaded {
+    opacity: 1;
+  }
+
+  .labels {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .label-arrows {
+    position: absolute;
+    inset: 0;
+  }
+
+  .label-arrows :global(.ink) {
+    fill: none;
+    stroke: var(--room-hand);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .hand {
+    position: absolute;
+    font-family: 'Caveat', 'Segoe Print', cursive;
+    font-weight: 500;
+    font-size: 26px;
+    line-height: 1;
+    color: var(--room-hand);
+    white-space: nowrap;
+  }
+
+  .spot {
+    position: absolute;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    border-radius: 10px;
+    outline: 1.5px dashed transparent;
+    outline-offset: 2px;
+    transition: outline-color 0.15s, background-color 0.15s;
+  }
+
+  .spot:hover,
+  .spot:focus-visible {
+    outline-color: rgba(238, 138, 69, 0.6);
+    background-color: rgba(238, 138, 69, 0.05);
+  }
+
+  .room-header {
+    position: absolute;
+    left: 56px;
+    top: 36px;
+    right: 56px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .who {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .who h1 {
+    margin: 0;
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+    font-size: 40px;
+    line-height: 1;
+    color: var(--room-ink-strong);
+  }
+
+  .who p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--room-ink-muted);
+  }
+
+  .room-header nav {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .navb {
+    all: unset;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--room-ink);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .navb:hover,
+  .navb:focus-visible {
+    color: var(--room-ink-strong);
+  }
+
+  .plain {
+    font-size: 14px;
+    color: var(--room-accent);
+    text-decoration: none;
+  }
+
+  .plain:hover {
+    color: var(--room-accent-hover);
+  }
+
+  /* --- Zone overlay + cards --- */
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+  }
+
+  .scrim {
+    all: unset;
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 11, 15, 0.62);
+    cursor: pointer;
+  }
+
+  .card-dock {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .zone {
+    position: absolute;
+    right: 80px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 400px;
+    max-height: 780px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 36px 40px 40px;
+    border-radius: 18px;
+    background: var(--room-panel);
+    border: 1px solid var(--room-panel-line);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+    pointer-events: auto;
+  }
+
+  /* .zone{display:flex} above has equal specificity to a plain [hidden]
+     attribute selector, so without this override the flex display wins and
+     the card never actually hides - this exact class of bug has bitten this
+     project's [hidden]-vs-display CSS three times before (see CLAUDE.md). */
+  .zone[hidden] {
+    display: none;
+  }
+
+  .back {
+    all: unset;
+    align-self: flex-start;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--room-ink-muted);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .back:hover,
+  .back:focus-visible {
+    color: var(--room-ink);
+  }
+
+  .zone-head {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .eyebrow {
+    margin: 0;
+    font-family: 'Caveat', 'Segoe Print', cursive;
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--room-accent);
+  }
+
+  .zone-head h2 {
+    margin: 0;
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+    font-size: 48px;
+    line-height: 1;
+    color: var(--room-ink-strong);
+  }
+
+  .zone-body {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--room-ink-body);
+  }
+
+  .zone-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .zone-list-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    padding: 12px 0;
+    border-top: 1px solid var(--room-panel-line);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .zone-list-row:first-child {
+    border-top: none;
+  }
+
+  .row-title {
+    font-size: 16px;
+    color: var(--room-ink);
+    transition: color 0.15s;
+  }
+
+  .zone-list-row:hover .row-title,
+  .zone-list-row:focus-visible .row-title {
+    color: var(--room-accent);
+  }
+
+  .row-meta {
+    flex: none;
+    font-size: 13px;
+    color: var(--room-ink-muted);
+  }
+
+  .poster-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .poster-slot {
+    position: relative;
+    aspect-ratio: 2 / 3;
+    border-radius: 4px;
+    background: #1c2631;
+    border: 1px dashed #334254;
+    overflow: hidden;
+  }
+
+  .card-poster {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .card-poster.is-loaded {
+    opacity: 1;
+  }
+
+  .now-playing {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border-radius: 10px;
+    background: #18212b;
+    text-decoration: none;
+    color: inherit;
+    transition: background-color 0.15s ease;
+  }
+
+  .now-playing:hover,
+  .now-playing:focus-visible {
+    background: #1e2a37;
+  }
+
+  .now-art-wrap {
+    position: relative;
+    flex: none;
+    width: 56px;
+    height: 56px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #243140;
+  }
+
+  #now-art {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  #now-art.is-loaded {
+    opacity: 1;
+  }
+
+  .now-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .now-meta .row-title,
+  .now-meta .row-meta {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cta {
+    display: inline-flex;
+    align-self: flex-start;
+    align-items: center;
+    min-height: 48px;
+    padding: 0 22px;
+    border-radius: 999px;
+    background: var(--room-accent);
+    color: var(--room-accent-ink);
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none;
+    transition: filter 0.15s;
+  }
+
+  .cta:hover {
+    filter: brightness(1.08);
+  }
+
+  /* Per-zone shape/material accent - proportions and a small motif echoing
+     the object, instead of one identical box for all six zones. */
+
+  .zone[data-shape='cork'] {
+    width: 460px;
+    border-radius: 10px 10px 18px 18px;
+  }
+
+  .zone[data-shape='cork']::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 8px;
+    border-radius: 10px 10px 0 0;
+    background: linear-gradient(90deg, #a87c47, #c99a5e 45%, #a87c47);
+  }
+
+  .zone[data-shape='desk'] {
+    width: 440px;
+    border-radius: 12px;
+  }
+
+  .zone[data-shape='desk']::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 5px;
+    border-radius: 12px 12px 0 0;
+    background: linear-gradient(90deg, #4a525c, #6b7580 50%, #4a525c);
+  }
+
+  .zone[data-shape='frame'] {
+    width: 320px;
+    border-radius: 10px;
+    box-shadow: 0 0 0 5px var(--room-panel), 0 0 0 6px var(--room-panel-line), 0 30px 80px rgba(0, 0, 0, 0.5);
+  }
+
+  .zone[data-shape='cabinet'] {
+    width: 460px;
+    border-radius: 18px 18px 10px 10px;
+  }
+
+  .zone[data-shape='cabinet']::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 10px;
+    border-radius: 0 0 10px 10px;
+    background: linear-gradient(90deg, #5a3d26, #7a5636 50%, #5a3d26);
+  }
+
+  .zone[data-shape='shelf'] {
+    width: 340px;
+    padding-left: 34px;
+    border-radius: 12px;
+  }
+
+  .zone[data-shape='shelf']::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 6px;
+    border-radius: 12px 0 0 12px;
+    background: repeating-linear-gradient(
+      180deg,
+      #6a4a33 0px,
+      #6a4a33 26px,
+      #8a5f42 27px,
+      #8a5f42 29px
+    );
+  }
+
+  .zone[data-shape='frame-thin'] {
+    width: 300px;
+    border-radius: 6px;
+    box-shadow: 0 0 0 3px var(--room-panel), 0 0 0 4px var(--room-accent), 0 30px 80px rgba(0, 0, 0, 0.5);
+  }
+
+  /* The picture-light glow anchors its BOTTOM edge exactly at the card's own
+     top edge (bottom: 100%, not a negative `top` + height that reached back
+     down into the card) - it extends only upward from there, so it can
+     never overlap the "Back to the room" text underneath it. An earlier
+     version used `top: -10px; height: 60px`, which put ~50px of the glow
+     inside the card and rendered as a smudge across the first line of
+     content instead of light spilling down from above. */
+  .zone[data-shape='frame-thin']::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    width: 160px;
+    height: 36px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at bottom, rgba(238, 138, 69, 0.35), transparent 75%);
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stage {
+      transition: none;
+    }
+  }
+</style>
