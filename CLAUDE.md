@@ -60,7 +60,7 @@ npm run new-post -- "Title" "description"       # scaffolds src/content/blog/<sl
 npm run new-project -- "Title" "description"     # scaffolds src/content/projects/<slug>.md
 ```
 
-(`scripts/new-content.mjs`.) Schema in `src/content.config.ts` — blog and projects share `title`/`date`/`description`; projects also have optional `stack`/`status`/`role`/`started`/`processNote`/`aside` (all defaulted, so older entries without them still validate), shown via `SpecHeader.astro` on the project's own page. Full docs in `README.md`.
+(`scripts/new-content.mjs`.) Schema in `src/content.config.ts` — blog and projects share `title`/`date`/`description`; projects also require `stack`/`status`/`role`/`started` (every `.md` file sets these itself now, no schema-level defaults — the scaffold script fills in `"TBD"`/`"Planned"`/`"Solo"`/`"TBD"` placeholders for a new entry, which is a reminder to go fill them in for real, not a value meant to ship) plus optional `processNote`/`aside`, shown via `SpecHeader.astro` on the project's own page. Full docs in `README.md`.
 
 ## Other things worth knowing
 

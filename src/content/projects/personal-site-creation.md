@@ -2,6 +2,10 @@
 title: Personal Website
 date: 2026-09-27
 description: The process to making this site!
+stack: "Astro 6, plain CSS, Vercel"
+status: "Live"
+role: "Solo"
+started: "April 2026"
 ---
 
 When making this website i had a general vision of what i wanted. I wanted to have a place to show off my projects, write some posts, display my background, and have a resume available to any potential employers, but it was going to be more than that. A personal site is a representation of the person behind it, and thus i wanted my site to feel like me and be full of personality. My first pass at the site was too generic and 'slop' like, with a clean minimal techy design that didnt really feel like me, sure it had elements of myself but it also could have represented millions of other people so it was back to the drawing board. Next up came my spark of genius. I wanted to let people see into my head, what if i was able to make that literally? Quickly that evolved into a look into my space/room and (after getting some inspiration looking at other personal sites) i thought it would be so cool to have the home page be a room in a house and all the other pages be respective rooms for their functionality where the camera pans over instead of doing a hard refresh. This idea was awesome, sadly i have almost no web dev/front end skills and not much of a passion to learn them, so the idea shrunk into one room where the interactable objects and walls would serve as the different pages. Alas even this idea was a bit too hard to create, at least to the level of polish and quality i wanted, so the site took another turn. I thought of a geat idea to capture the essense of looking into my room while still residing in the realm of my capabilities, and thats how the angled perspective look happened! I think its really cool having each page be objects in the room and it also cuts down on the hard refreshes needed. I am still looking to make improvments in the future but the site is finally in a stage where i feel it represents my personality and is of enough quality.

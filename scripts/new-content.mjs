@@ -50,10 +50,16 @@ mkdirSync(dir, { recursive: true });
 const today = new Date().toISOString().slice(0, 10);
 const finalDescription = description || 'TODO: add a description.';
 
+const projectFields = `
+stack: "TBD"
+status: "Planned"
+role: "Solo"
+started: "TBD"`;
+
 const frontmatter = `---
 title: ${JSON.stringify(title)}
 date: ${today}
-description: ${JSON.stringify(finalDescription)}
+description: ${JSON.stringify(finalDescription)}${type === 'project' ? projectFields : ''}
 ---
 
 Write your ${type === 'project' ? 'project write-up' : 'post'} here.
