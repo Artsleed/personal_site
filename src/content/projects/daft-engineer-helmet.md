@@ -1,6 +1,6 @@
 ---
 title: Daft Engineer Helmet
-date: 2025-09-7
+date: 2025-09-07
 description: Daft punk helmet with my own spin on it!
 stack: "ESP32, not much else"
 status: "Working on it"
