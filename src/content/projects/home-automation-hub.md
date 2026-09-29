@@ -1,5 +1,5 @@
 ---
-title: Home Automation Hub
+title: placeholder3
 date: 2026-04-08
 description: Placeholder entry - real project details coming soon.
 stack: "TBD"

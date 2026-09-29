@@ -1,5 +1,5 @@
 ---
-title: Real-Time Pose Estimation
+title: placeholder10
 date: 2025-10-30
 description: Placeholder entry - real project details coming soon.
 stack: "TBD"

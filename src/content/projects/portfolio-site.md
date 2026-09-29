@@ -1,5 +1,5 @@
 ---
-title: Portfolio Website
+title: placeholder9
 date: 2026-04-24
 description: Placeholder entry - real project details coming soon.
 stack: "TBD"

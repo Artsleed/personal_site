@@ -1,5 +1,5 @@
 ---
-title: FPGA Audio Synthesizer
+title: placeholder2
 date: 2026-02-19
 description: Placeholder entry - real project details coming soon.
 stack: "TBD"

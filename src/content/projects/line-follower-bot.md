@@ -1,5 +1,5 @@
 ---
-title: Line-Follower Robot
+title: placeholder4
 date: 2025-09-12
 description: Placeholder entry - real project details coming soon.
 stack: "TBD"

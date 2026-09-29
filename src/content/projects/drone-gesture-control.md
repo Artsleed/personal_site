@@ -1,5 +1,5 @@
 ---
-title: Gesture-Controlled Drone
+title: placeholder1
 date: 2026-01-18
 description: Placeholder entry - real project details coming soon.
 stack: "TBD"

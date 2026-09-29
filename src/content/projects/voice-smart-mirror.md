@@ -1,5 +1,5 @@
 ---
-title: Voice-Controlled Smart Mirror
+title: placeholder14
 date: 2025-12-17
 description: Placeholder entry - real project details coming soon.
 stack: "TBD"

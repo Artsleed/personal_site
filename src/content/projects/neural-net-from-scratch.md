@@ -1,5 +1,5 @@
 ---
-title: Neural Network From Scratch
+title: placeholder7
 date: 2026-02-03
 description: Placeholder entry - real project details coming soon.
 stack: "TBD"

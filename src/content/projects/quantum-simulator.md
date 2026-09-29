@@ -1,5 +1,5 @@
 ---
-title: Quantum Circuit Simulator
+title: placeholder11
 date: 2025-11-15
 description: Placeholder entry - real project details coming soon.
 stack: "TBD"

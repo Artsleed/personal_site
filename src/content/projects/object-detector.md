@@ -1,5 +1,5 @@
 ---
-title: Real-Time Object Detector
+title: placeholder8
 date: 2026-03-23
 description: Placeholder entry - real project details coming soon.
 stack: "TBD"

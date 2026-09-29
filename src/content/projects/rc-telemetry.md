@@ -1,5 +1,5 @@
 ---
-title: RC Car Telemetry System
+title: placeholder12
 date: 2026-03-07
 description: Placeholder entry - real project details coming soon.
 stack: "TBD"
