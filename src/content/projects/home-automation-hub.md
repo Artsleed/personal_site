@@ -1,10 +1,10 @@
 ---
 title: placeholder3
-date: 2026-04-08
+date: 2020-04-08
 description: Placeholder entry - real project details coming soon.
 stack: "TBD"
 status: "Planned"
-role: "Solo"
+role: "S9lo"
 started: "TBD"
 ---
 
