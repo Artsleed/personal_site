@@ -1,6 +1,6 @@
 ---
 title: placeholder13
-date: 2029-01-02
+date: 2021-01-02
 description: Placeholder entry - real project details coming soon.
 stack: "TBD"
 status: "Planned"
