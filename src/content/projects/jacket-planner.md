@@ -22,3 +22,5 @@ Going forward i want the site to evolve and when i get the time and see fit i wi
 
 This project was tons of fun to work on and it was really satisfying to make something that i can see myself and others really using somewhat regularly. 
 
+Go check it out! https://queens-gpa-planner.vercel.app/
+
