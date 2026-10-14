@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Natha/AppData/Local/npm-cache/_npx/e41f203b7505f1fb//**)",
+      "Bash(node fix-check.mjs)",
+      "Bash(rm -f \"/c/Users/Natha/AppData/Local/npm-cache/_npx/e41f203b7505f1fb/\"*.mjs *)",
+      "Bash(git push *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\Natha\\AppData\\Local\\npm-cache\\_npx\\e41f203b7505f1fb"
+    ]
+  }
+}
