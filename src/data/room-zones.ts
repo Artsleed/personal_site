@@ -122,7 +122,7 @@ export const roomZones: RoomZone[] = [
       top: 768,
       arrowPath: 'M326.0 764.0 Q325.4 730.6 348.0 706.0 M345.4 714.6 L348.0 706.0 L339.6 709.3',
     },
-    body: "Second-year Computer Engineering student at Queen's. I work at the Canadian Labour Congress on how AI is changing work, and spend the rest of my time climbing, tinkering with hardware and watching films.",
+    body: "Computer Engineering student at Queen's. When not working, i spend the rest of my time climbing, watching movies, and thinking about absurd scenarios.",
     cta: 'More about me',
     shape: 'shelf',
   },
