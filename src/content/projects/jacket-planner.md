@@ -2,7 +2,7 @@
 title: Eng jacket planner
 date: 2026-10-13
 description: A mockup jacket design to allow students to plan their jackets
-stack: "Not much just html and some 3D rendering"
+stack: "just html and some 3D rendering"
 status: "online"
 role: "Solo"
 started: "2026-10-06"
